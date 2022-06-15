@@ -10,12 +10,14 @@ const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
+
 app.get("/status", (req:Request, res: Response) => {
     return res.send({
         qr_code: sender.qrCode,
         connected: sender.isConnected,
     })
 })
+
 
 app.post("/send", async (req:Request, res: Response) => {
     const { number, message } = req.body
@@ -30,19 +32,30 @@ app.post("/send", async (req:Request, res: Response) => {
     }
 })
 
+
+app.post("/sendCard", async (req:Request, res:Response) => {
+    try {
+        await sender.sendCard()
+        res.status(200).json
+    }catch(error){
+        res.status(500).json({status:"error", message:error})
+    }
+})
+
+
 app.get("/chatcontactnewmsg", async (req:Request, res:Response) => {
     let number = req.query.number as string
     console.log(number)
     try {
         const teste = await sender.getAllMessagesInChat(number)
-        console.log("errrrrrrrrrrrrrrrrrrrrror",teste)
         return res.status(200).json(teste)
+
     }catch(error){
         console.error("error", error)
         res.status(500).json({status:"error", message:error})
     }
-
 })
+
 
 app.listen(5000, () => {
     console.log("go go go go go")
