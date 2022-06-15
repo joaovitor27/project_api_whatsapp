@@ -1,3 +1,4 @@
+import console from "console";
 import express, { Request, Response } from "express"
 
 import Sender from "./sender";
@@ -29,9 +30,11 @@ app.post("/send", async (req:Request, res: Response) => {
     }
 })
 
-app.post("/chatcontactnewmsg", async (req:Request, res:Response) => {
+app.get("/chatcontactnewmsg", async (req:Request, res:Response) => {
+    let number = req.query.number as string
+    console.log(number)
     try {
-        var teste = await sender.getAllMessagesInChat()
+        const teste = await sender.getAllMessagesInChat(number)
         console.log("errrrrrrrrrrrrrrrrrrrrror",teste)
         return res.status(200).json(teste)
     }catch(error){
