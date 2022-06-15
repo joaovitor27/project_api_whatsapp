@@ -60,6 +60,9 @@ class Sender {
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
 
         var all = await this.client.getAllMessagesInChat(phoneNumber, true, false)
+        
+        console.log("chat", all)
+        
         var mensagens: mensagens[] = []
         for (let index = 0; index < all.length; index++) {
             const element = all[index];
