@@ -1,5 +1,6 @@
 import parsePhoneNumber, { isValidPhoneNumber } from "libphonenumber-js";
-import { create, Whatsapp,Message, SocketState } from "venom-bot";
+import { create, Whatsapp, Message, SocketState } from "venom-bot";
+import axios from "axios";
 
 export type QRCode = {
     base64Qr: String
@@ -29,42 +30,51 @@ class Sender {
         return this.qr
     }
 
-    get card(): cards{
+    get card(): cards {
         return this.cards
     }
 
     constructor() {
         this.initialize()
     }
-    
-    async capturaMensagem(client: Whatsapp){
+
+
+    async capturaMensagem(client: Whatsapp) {
+        const botRevGas = axios.create({
+            baseURL: "http://18.231.43.57"
+        })
         client.onAnyMessage((mensagem) => {
             var origen = mensagem["from"] as string
-            if (origen.includes("@g.us") || origen.includes("@broadcast")){
-                console.log("isso não é uma mensagem de pessoa!", origen)
-                console.log("mensagem", mensagem)
-            }else{
-                console.log("isso é uma Pessoa!", origen)
-                console.log("mensagem", mensagem)
-            }
-        })}
+            if (origen.includes("@g.us") || origen.includes("@broadcast")) {
+            } else {
+                if (origen != mensagem.chatId) {
 
-    async sendCard() {
-        var buttons = []
-        buttons = [
-            {
-                "buttonText": {
-                    "displayText": "Text of Button 1"
+                } else {
+                    let phoneNumber = parsePhoneNumber(mensagem.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
+
+                    botRevGas.post("/", {
+                        "appPackageName": "venom",
+                        "messengerPackageName": "com.whatsapp",
+                        "query": {
+                            "sender": phoneNumber,
+                            "message": mensagem.body,
+                            "isGroup": false,
+                            "groupParticipant": "",
+                            "ruleId": 43,
+                            "isTestMessage": false
+                        }
+                    },
+                    {headers: {Token: 7, Id: 19}}).
+                    then(async (res) => {
+                        await client.sendText(mensagem.from as string, res.data["replies"][0]["message"] as string)
+                    }).catch((error) => {
+                        console.log(error)
+                    })
                 }
-            } as never,
-            {
-                "buttonText": {
-                    "displayText": "Text of Button 2"
-                }
-            } as never
-        ]
-        await this.client.sendButtons('5586994404204@c.us', 'Teste', buttons as [], 'teste de envio de botões')
+            }
+        })
     }
+
 
     async sendText(to: string, body: string) {
 
@@ -84,7 +94,7 @@ class Sender {
     }
 
     async getAllMessagesInChat(to: string) {
-        this.client.options.debug = true;
+
         if (!isValidPhoneNumber(to, "BR")) {
             throw new Error("Esse Numero não é valido")
         }
@@ -93,16 +103,9 @@ class Sender {
 
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
 
-        console.log("Phone", phoneNumber)
-
-        // let chats = await this.client.getAllChats();
-        // console.log("chat", chats)
-
         let chat = await this.client.getChatById(phoneNumber);
-        console.log("chat", chat)
-        
+
         let messagesAll = await this.client.getAllMessagesInChat(phoneNumber, false, true);
-        // console.log("messages", messagesAll)
 
         var mensagens: mensagens[] = []
         for (let index = 0; index < messagesAll.length; index++) {
@@ -114,19 +117,19 @@ class Sender {
             const sender = element["sender"]
 
             const newMessage = {
-                 "idmensagem": idmensagem,
-                  "mensagem": mensagen,
-                   "form": from,
-                    "to": to,
-                    "date": new Date(element["timestamp"] * 1000),
-                    "sender": sender
-                     } as never
+                "idmensagem": idmensagem,
+                "mensagem": mensagen,
+                "form": from,
+                "to": to,
+                "date": new Date(element["timestamp"] * 1000),
+                "sender": sender
+            } as never
 
             mensagens.push(newMessage)
         }
-        console.log("mensagens", mensagens)
         return mensagens
     }
+
 
     private async initialize() {
         const qr = (base64Qr: string) => {
@@ -143,7 +146,7 @@ class Sender {
                 this.connected = state === SocketState.CONNECTED
             })
         }
-        let venom = await create('joao', qr)
+        let venom = await create('Lucienton', qr)
         // create('revbot', qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
         this.capturaMensagem(venom)
     }
