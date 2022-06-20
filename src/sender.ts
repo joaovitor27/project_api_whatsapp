@@ -1,6 +1,5 @@
 import parsePhoneNumber, { isValidPhoneNumber } from "libphonenumber-js";
-import { create, Whatsapp, Message, SocketState } from "venom-bot";
-
+import { create, Whatsapp,Message, SocketState } from "venom-bot";
 
 export type QRCode = {
     base64Qr: String
@@ -37,6 +36,18 @@ class Sender {
     constructor() {
         this.initialize()
     }
+    
+    async capturaMensagem(client: Whatsapp){
+        client.onAnyMessage((mensagem) => {
+            var origen = mensagem["from"] as string
+            if (origen.includes("@g.us") || origen.includes("@broadcast")){
+                console.log("isso não é uma mensagem de pessoa!", origen)
+                console.log("mensagem", mensagem)
+            }else{
+                console.log("isso é uma Pessoa!", origen)
+                console.log("mensagem", mensagem)
+            }
+        })}
 
     async sendCard() {
         var buttons = []
@@ -53,12 +64,9 @@ class Sender {
             } as never
         ]
         await this.client.sendButtons('5586994404204@c.us', 'Teste', buttons as [], 'teste de envio de botões')
-
     }
 
     async sendText(to: string, body: string) {
-
-        
 
         if (!isValidPhoneNumber(to, "BR")) {
             throw new Error("Esse Numero não é valido")
@@ -74,7 +82,6 @@ class Sender {
             .then((result) => { console.log('Result: ', result); })
             .catch((error) => { console.error('Error when sending: ', error); });
     }
-
 
     async getAllMessagesInChat(to: string) {
         this.client.options.debug = true;
@@ -112,7 +119,7 @@ class Sender {
                    "form": from,
                     "to": to,
                     "date": new Date(element["timestamp"] * 1000),
-                    //  "sender": sender
+                    "sender": sender
                      } as never
 
             mensagens.push(newMessage)
@@ -121,7 +128,7 @@ class Sender {
         return mensagens
     }
 
-    private initialize() {
+    private async initialize() {
         const qr = (base64Qr: string) => {
             this.qr = { base64Qr }
         }
@@ -136,8 +143,9 @@ class Sender {
                 this.connected = state === SocketState.CONNECTED
             })
         }
-        create('arthur', qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
+        let venom = await create('joao', qr)
         // create('revbot', qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
+        this.capturaMensagem(venom)
     }
 }
 
