@@ -1,5 +1,5 @@
 import parsePhoneNumber, { isValidPhoneNumber } from "libphonenumber-js";
-import { create, Whatsapp, Message, SocketState } from "venom-bot";
+import { create, Whatsapp, SocketState } from "venom-bot";
 import axios from "axios";
 
 export type QRCode = {
@@ -39,11 +39,11 @@ class Sender {
     }
 
 
-    async capturaMensagem(client: Whatsapp) {
+    async capturaMensagem() {
         const botRevGas = axios.create({
             baseURL: "http://18.231.43.57"
         })
-        client.onAnyMessage((mensagem) => {
+        this.client.onAnyMessage((mensagem) => {
             var origen = mensagem["from"] as string
             if (origen.includes("@g.us") || origen.includes("@broadcast")) {
             } else {
@@ -66,7 +66,7 @@ class Sender {
                     },
                     {headers: {Token: 7, Id: 19}}).
                     then(async (res) => {
-                        await client.sendText(mensagem.from as string, res.data["replies"][0]["message"] as string)
+                        await this.client.sendText(mensagem.from as string, res.data["replies"][0]["message"] as string)
                     }).catch((error) => {
                         console.log(error)
                     })
@@ -146,9 +146,9 @@ class Sender {
                 this.connected = state === SocketState.CONNECTED
             })
         }
-        let venom = await create('Lucienton', qr)
-        // create('revbot', qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
-        this.capturaMensagem(venom)
+        
+        await create('joao', qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
+        this.capturaMensagem()
     }
 }
 
