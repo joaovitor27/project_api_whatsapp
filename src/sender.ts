@@ -147,7 +147,7 @@ class Sender {
             })
         }
         
-        await create('joao', qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
+        await create('revgas', qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
         this.capturaMensagem()
     }
 }
