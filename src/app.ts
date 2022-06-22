@@ -47,6 +47,4 @@ app.get("/chatcontactnewmsg", async (req:Request, res:Response) => {
 })
 
 
-app.listen(5000, () => {
-    console.log("go go go go go")
-})
+app.listen(5000, () => {})
