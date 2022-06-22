@@ -33,6 +33,20 @@ app.post("/send", async (req:Request, res: Response) => {
 })
 
 
+app.post("/sendButtons", async (req:Request, res: Response) => {
+    const { number, title, buttons, description } = req.body
+    console.log("postman", number,title,buttons,description)
+    try {
+        await sender.sendButtons(number, title, buttons, description)
+        return res.status(200).json()
+        
+    }catch (error){
+        console.error("error", error)
+        res.status(500).json({status:"error", message:error})
+    }
+})
+
+
 app.get("/chatcontactnewmsg", async (req:Request, res:Response) => {
     let number = req.query.number as string
     console.log(number)

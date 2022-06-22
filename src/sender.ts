@@ -131,6 +131,25 @@ class Sender {
     }
 
 
+    async sendButtons(number:string, title:string, buttons:[], description:string) {
+
+        if (!isValidPhoneNumber(number, "BR")) {
+            throw new Error("Esse Numero não é valido")
+        }
+        let phoneNumber = parsePhoneNumber(number, "BR")?.format("E.164")?.replace("+", "") as string
+
+        phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
+
+        await this.client.sendButtons(phoneNumber, title, buttons, description)
+        .then((result) => {
+            console.log('Result: ', result);
+        })
+        .catch((erro) => {
+            console.error('Error when sending: ', erro);
+        });
+    }
+
+
     private async initialize() {
         const qr = (base64Qr: string) => {
             this.qr = { base64Qr }
