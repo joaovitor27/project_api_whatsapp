@@ -39,7 +39,7 @@ class Sender {
     }
 
 
-    async capturaMensagem() {
+    async captureMessage() {
         const botRevGas = axios.create({
             baseURL: "http://18.231.43.57"
         })
@@ -51,7 +51,6 @@ class Sender {
 
                 } else {
                     let phoneNumber = parsePhoneNumber(mensagem.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
-
                     botRevGas.post("/", {
                         "appPackageName": "venom",
                         "messengerPackageName": "com.whatsapp",
@@ -77,16 +76,12 @@ class Sender {
 
 
     async sendText(to: string, body: string) {
-
         if (!isValidPhoneNumber(to, "BR")) {
             throw new Error("Esse Numero não é valido")
         }
 
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
-
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
-
-        console.log("phoneNumber", phoneNumber)
 
         await this.client.sendText(phoneNumber, body)
             .then((result) => { console.log('Result: ', result); })
@@ -94,19 +89,14 @@ class Sender {
     }
 
     async getAllMessagesInChat(to: string) {
-
         if (!isValidPhoneNumber(to, "BR")) {
             throw new Error("Esse Numero não é valido")
         }
 
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
-
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
 
-        let chat = await this.client.getChatById(phoneNumber);
-
         let messagesAll = await this.client.getAllMessagesInChat(phoneNumber, false, true);
-
         var mensagens: mensagens[] = []
         for (let index = 0; index < messagesAll.length; index++) {
             const element = messagesAll[index];
@@ -131,21 +121,38 @@ class Sender {
     }
 
 
-    async sendButtons(number:string, title:string, buttons:[], description:string) {
+    // async sendButtons(number:string, title:string, buttons:[], description:string) {
 
+    //     if (!isValidPhoneNumber(number, "BR")) {
+    //         throw new Error("Esse Numero não é valido")
+    //     }
+    //     let phoneNumber = parsePhoneNumber(number, "BR")?.format("E.164")?.replace("+", "") as string
+
+    //     phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
+
+    //     await this.client.sendButtons(phoneNumber, title, buttons, description)
+    //     .then((result) => {
+    //         console.log('Result: ', result);
+    //     })
+    //     .catch((erro) => {
+    //         console.error('Error when sending: ', erro);
+    //     });
+    // }
+
+
+    async sendVoice(number:string) {
         if (!isValidPhoneNumber(number, "BR")) {
             throw new Error("Esse Numero não é valido")
         }
         let phoneNumber = parsePhoneNumber(number, "BR")?.format("E.164")?.replace("+", "") as string
-
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
 
-        await this.client.sendButtons(phoneNumber, title, buttons, description)
+        await this.client.sendVoice(phoneNumber, "src/audio/WhatsApp Audio 2022-06-22 at 10.54.24.mp3")
         .then((result) => {
-            console.log('Result: ', result);
+            console.log('Result: ', result); //return object success
         })
         .catch((erro) => {
-            console.error('Error when sending: ', erro);
+            console.error('Error when sending: ', erro); //return object error
         });
     }
 
@@ -167,7 +174,7 @@ class Sender {
         }
         
         await create('revgas', qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
-        this.capturaMensagem()
+        this.captureMessage()
     }
 }
 

@@ -33,11 +33,25 @@ app.post("/send", async (req:Request, res: Response) => {
 })
 
 
-app.post("/sendButtons", async (req:Request, res: Response) => {
-    const { number, title, buttons, description } = req.body
-    console.log("postman", number,title,buttons,description)
+// app.post("/sendButtons", async (req:Request, res: Response) => {
+//     const { number, title, buttons, description } = req.body
+//     console.log("postman", number,title,buttons,description)
+//     try {
+//         await sender.sendButtons(number, title, buttons, description)
+//         return res.status(200).json()
+        
+//     }catch (error){
+//         console.error("error", error)
+//         res.status(500).json({status:"error", message:error})
+//     }
+// })
+
+
+app.post("/sendVoice", async (req:Request, res: Response) => {
+    const { number } = req.body
+    console.log("postman", number)
     try {
-        await sender.sendButtons(number, title, buttons, description)
+        await sender.sendVoice(number)
         return res.status(200).json()
         
     }catch (error){
