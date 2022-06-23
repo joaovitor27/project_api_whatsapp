@@ -82,9 +82,7 @@ class Sender {
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
 
-        await this.client.sendText(phoneNumber, body)
-            .then((result) => { console.log('Result: ', result); })
-            .catch((error) => { console.error('Error when sending: ', error); });
+        await this.client.sendText(phoneNumber, body).catch((error) => { console.error('Error when sending: ', error); });
     }
 
     async getMessages(to: string) {

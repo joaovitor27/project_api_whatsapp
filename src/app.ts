@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: false }))
 app.get("/status", (req:Request, res: Response) => {
     return res.send({
         qr_code: sender.qrCode,
-        connected: sender.isConnected,
+        connected: sender.isConnected
     })
 })
 
@@ -50,7 +50,6 @@ app.post("/message", async (req:Request, res: Response) => {
 
 app.get("/get-messages", async (req:Request, res:Response) => {
     let number = req.query.number as string
-    console.log(number)
     try {
         const getMessages = await sender.getMessages(number)
         return res.status(200).json(getMessages)
