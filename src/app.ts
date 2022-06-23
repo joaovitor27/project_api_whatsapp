@@ -1,15 +1,17 @@
 import console from "console";
 import express, { Request, Response } from "express"
-
 import Sender from "./sender";
+import * as dotenv from 'dotenv';
 
 const sender = new Sender()
 
 const app = express()
+dotenv.config();
+
+API_KEY: process.env.API_KEY
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-
 
 app.get("/status", (req:Request, res: Response) => {
     return res.send({
@@ -21,7 +23,6 @@ app.get("/status", (req:Request, res: Response) => {
 
 app.post("/message", async (req:Request, res: Response) => {
     const { number, message } = req.body
-
     try {
         await sender.message(number, message)
         return res.status(200).json()
