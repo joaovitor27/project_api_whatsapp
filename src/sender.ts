@@ -1,5 +1,5 @@
 import parsePhoneNumber, { isValidPhoneNumber } from "libphonenumber-js";
-import { create, Whatsapp, SocketState } from "venom-bot";
+import { create, Whatsapp, SocketState, Message } from "venom-bot";
 import axios from "axios";
 
 
@@ -94,26 +94,71 @@ class Sender {
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
 
         let messagesAll = await this.client.getAllMessagesInChat(phoneNumber, true, true);
-
+        console.log(messagesAll)
+        
         var mensagens: message[] = []
         for (let index = 0; index < messagesAll.length; index++) {
-            const element = messagesAll[index];
+            const element: {[index:string]:any} = messagesAll[index];
             const idMessage = element["id"]
+            const type = element["type"]
             const message = element["body"]
             const from = element["from"]
             const to = element["to"]
-            const sender = element["sender"]
+            const isNewMsg = element["isNewMsg"]
+            const isMedia = element["isMedia"]
+            const chatId = element["chatId"]
+            const mediaData = element["mediaData"]
 
-            const newMessage = {
-                "idMensagem": idMessage,
-                "mensagem": message,
-                "form": from,
-                "to": to,
-                "date": new Date(element["timestamp"] * 1000),
-                "sender": sender
-            } as never
+            if (type == "location"){
+                const lat = element["lat"]
+                const lng = element["lng"]
 
-            mensagens.push(newMessage)
+                const newMessage = {
+                    "idMensagem": idMessage,
+                    "type": type,
+                    "message": message,
+                    "form": from,
+                    "to": to,
+                    "chatId": chatId,
+                    "isNewMsg": isNewMsg,
+                    "latitude": lat,
+                    "longitude": lng,
+                    "isMedia": isMedia,
+                    "date": new Date(element["timestamp"] * 1000),
+                } as never
+                mensagens.push(newMessage)
+
+            } else{
+                if (type == "image"||type == "video"||type=="audio"||type=="ptt"){
+                    const newMessage = {
+                        "idMensagem": idMessage,
+                        "type": type,
+                        "message": message,
+                        "form": from,
+                        "to": to,
+                        "chatId": chatId,
+                        "isNewMsg": isNewMsg,
+                        "isMedia": isMedia,
+                        "date": new Date(element["timestamp"] * 1000),
+                        "mediaData": mediaData
+                    } as never
+                    mensagens.push(newMessage)
+
+                } else {
+                    const newMessage = {
+                        "idMensagem": idMessage,
+                        "type": type,
+                        "message": message,
+                        "form": from,
+                        "to": to,
+                        "chatId": chatId,
+                        "isNewMsg": isNewMsg,
+                        "isMedia": isMedia,
+                        "date": new Date(element["timestamp"] * 1000)
+                    } as never
+                    mensagens.push(newMessage)
+                }
+            }
         }
         return mensagens
     }
