@@ -40,40 +40,6 @@ class Sender {
         this.initialize()
     }
 
-
-    async listenMessage() {
-        const botRevGas = axios.create({
-            baseURL: "http://18.231.43.57"
-        })
-        this.client.onAnyMessage(async (message) => {
-            var origen = message["from"] as string
-            if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
-                if (!(origen != message.chatId)) {
-                    let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
-                    botRevGas.post("/", {
-                        "appPackageName": "venom",
-                        "messengerPackageName": "com.whatsapp",
-                        "query": {
-                            "sender": phoneNumber,
-                            "message": message.body,
-                            "isGroup": false,
-                            "groupParticipant": "",
-                            "ruleId": 43,
-                            "isTestMessage": false
-                        }
-                    },
-                    {headers: {Token: 7, Id: 19}}).
-                    then(async (res) => {
-                        await this.client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
-                    }).catch((error) => {
-                        console.log(error)
-                    })
-                }
-            }
-        })
-    }
-
-
     async message(to: string, body: string) {
         if (!isValidPhoneNumber(to, "BR")) {
             throw new Error("Invalid number!")
@@ -182,7 +148,7 @@ class Sender {
     // }
 
 
-    private async initialize() {
+    private initialize() {
         const qr = (base64Qr: string) => {
             this.qr = { base64Qr }
         }
@@ -191,15 +157,53 @@ class Sender {
             this.connected = ["inLogged", "qrReadSuccess", "chatsAvailable"].includes(statusSession)
         }
 
-        const start = (client: Whatsapp) => {
-            this.client = client
-            client.onStateChange((state) => {
-                this.connected = state === SocketState.CONNECTED
-            })
+        try{
+            const start = (client: Whatsapp) => {
+                this.client = client
+                client.onStateChange((state) => {
+                    this.connected = state === SocketState.CONNECTED
+                    
+                })
+                const botRevGas = axios.create({
+                    baseURL: "http://18.231.43.57"
+                })
+                try{
+                client.onAnyMessage(async (message) => {
+                    var origen = message["from"] as string
+                    if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
+                        if (!(origen != message.chatId)) {
+                            let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
+                            botRevGas.post("/", {
+                                "appPackageName": "venom",
+                                "messengerPackageName": "com.whatsapp",
+                                "query": {
+                                    "sender": phoneNumber,
+                                    "message": message.body,
+                                    "isGroup": false,
+                                    "groupParticipant": "",
+                                    "ruleId": 43,
+                                    "isTestMessage": false
+                                }
+                            },
+                            {headers: {Token: 7, Id: 19}}).
+                            then(async (res) => {
+                                await this.client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
+                            }).catch((error) => {
+                                console.log(error)
+                            })
+                        }
+                    }
+                })
+                }catch(error){
+                    console.log(error)
+                }
+            }
+            create('revgas', qr).then((revgas) => { start(revgas) }).catch((error) => { console.error(error) })
+
+        }catch(error){
+            console.log(error)
         }
-        
-        await create('revgas', qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
-        this.listenMessage()
+
     }
 }
 
