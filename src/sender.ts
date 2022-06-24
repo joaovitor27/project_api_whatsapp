@@ -93,8 +93,7 @@ class Sender {
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
 
-        let messagesAll = await this.client.getAllMessagesInChat(phoneNumber, true, true);
-        console.log(messagesAll)
+        let messagesAll = await this.client.getAllMessagesInChat(phoneNumber, false, true);
         
         var mensagens: message[] = []
         for (let index = 0; index < messagesAll.length; index++) {
