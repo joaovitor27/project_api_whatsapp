@@ -82,13 +82,12 @@ app.get("/get-messages", async (req:Request, res:Response) => {
     }
 })
 
-app.get("/logout", async(req:Request, res:Response) => {
+app.get("/close-session", async(req:Request, res:Response) => {
     try {
         const apiKey = req.get('Authorization')
         if (!apiKey || apiKey !== process.env.API_KEY) {
             res.status(401).json({error: 'unauthorised'})
         }else{
-            const client = {sessionStorage:"joao"}
             sender.closeSession()
             return res.status(200).json({success: "Logout successfully"})
         }
