@@ -167,8 +167,7 @@ class Sender {
     }
 
     async closeSession(){
-        console.log(this.client)
-        this.client.close();
+        await this.client.close()
     }  
 
     private initialize() {
