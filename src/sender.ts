@@ -148,6 +148,29 @@ class Sender {
     // }
 
 
+    async sendListMenu(number:string, title: string, subTitle: string, description: string, buttonText:string, listMenu: []) {
+        if (!isValidPhoneNumber(number, "BR")) {
+            throw new Error("Invalid number!")
+        }
+
+        let phoneNumber = parsePhoneNumber(number, "BR")?.format("E.164")?.replace("+", "") as string
+        phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
+
+        await this.client.sendListMenu(phoneNumber, title, subTitle, description, buttonText, listMenu)
+          .then((result) => {
+            console.log('Result: ', result); //return object success
+          })
+          .catch((erro) => {
+            console.error('Error when sending: ', erro); //return object error
+          });
+          
+    }
+
+    async closeSession(){
+        console.log(this.client)
+        this.client.close();
+    }  
+
     private initialize() {
         const qr = (base64Qr: string) => {
             this.qr = { base64Qr }

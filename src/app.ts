@@ -47,19 +47,22 @@ app.post("/message", async (req:Request, res: Response) => {
     }
 })
 
+app.post("/menu", async (req:Request, res: Response) => {
+    try{
+        const apiKey = req.get('Authorization')
+        if (!apiKey || apiKey !== process.env.API_KEY) {
+            res.status(401).json({error: 'unauthorised'})
+        }else{
+            const { number, title, subTitle, description, buttonText, listMenu } = req.body
+            await sender.sendListMenu(number, title, subTitle, description, buttonText, listMenu)
 
-// app.post("/sendButtons", async (req:Request, res: Response) => {
-//     const { number, title, buttons, description } = req.body
-//     console.log("postman", number,title,buttons,description)
-//     try {
-//         await sender.sendButtons(number, title, buttons, description)
-//         return res.status(200).json()
-        
-//     }catch (error){
-//         console.error("error", error)
-//         res.status(500).json({status:"error", message:error})
-//     }
-// })
+            return res.status(200).json({success: "Message sent successfully"})
+        }
+    }catch (error){
+        console.error("error", error)
+        res.status(500).json({status:"error", message:error})
+    }
+})
 
 
 app.get("/get-messages", async (req:Request, res:Response) => {
@@ -73,6 +76,22 @@ app.get("/get-messages", async (req:Request, res:Response) => {
             return res.status(200).json(getMessages)
         }
 
+    }catch(error){
+        console.error("error", error)
+        res.status(500).json({status:"error", message:error})
+    }
+})
+
+app.get("/logout", async(req:Request, res:Response) => {
+    try {
+        const apiKey = req.get('Authorization')
+        if (!apiKey || apiKey !== process.env.API_KEY) {
+            res.status(401).json({error: 'unauthorised'})
+        }else{
+            const client = {sessionStorage:"joao"}
+            sender.closeSession()
+            return res.status(200).json({success: "Logout successfully"})
+        }
     }catch(error){
         console.error("error", error)
         res.status(500).json({status:"error", message:error})
