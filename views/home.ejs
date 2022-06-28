@@ -1,0 +1,94 @@
+<!-- ./client/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+  </head>
+  <body>
+    <div id="criar" class="tabName">
+      <p id="textID" style="display:none"></p>
+      <img id="img1">
+      <br><br>
+      <input id="idInput">
+      <br><br>
+      <button onclick="criarSessao()">Criar Sessão</button> <button onclick="carregarSessao()">Recarregar qrCode</button>
+      <br><br>
+    </div>
+    <div id="listar" class="tabName">
+      <button onclick="listarSessao()">Listar sessão</button>
+      <p id="list"></p>
+      <br>
+    </div>
+    <div id="deletar" class="tabName" style="display: none;">
+      <input id="deleteInput">
+      <br><br>
+      <button onclick="deletarSessao()">deletar sessao</button>
+      <br><br>
+    </div>
+    <hr>
+    <h3>asdjkasdojasdoipas</h3>
+    <div class="w3-bar w3-black">
+      <button onclick="carregarTab('criar')">criar</button>
+      <button onclick="carregarTab('listar')">listar</button>
+      <button onclick="carregarTab('deletar')">deletar</button>
+    </div>
+    <script>
+      function carregarTab(tabName) {
+        var i;
+        var x = document.getElementsByClassName("tabName");
+        for(i=0; i<x.length;i++){
+          x[i].style.display = "none";
+        }
+        document.getElementById(tabName).style.display = "block"
+      }
+    </script>
+
+    <script>
+      const socket = io("http://localhost:3001");
+
+      function criarSessao() {
+        socket.emit("create-session", {id:document.getElementById('idInput').value});
+        socket.on('qrcode', (data) => {
+          document.getElementById("textID").style.display = "block";
+          document.getElementById("textID").innerHTML = "<b>ID DA instancia: </b>" + document.getElementById('idInput').value;
+          document.getElementById("img1").src = document.getElementById("idInput").value + "png";
+        })
+        socket.emit('qrcode')
+      }
+
+      function carregarSessao() {
+        socket.on('qrcodeLoad', (data) => {
+          document.getElementById("img1").src = document.getElementById("idInput").value + ".png"
+        })
+        socket.emit('qrcodeLoad')
+      }
+
+      function deletarSessao(data) {
+        socket.emit("delete-session", document.getElementById("deleteInput").value);
+      }
+
+      function listarSessao() {
+        socket.emit("list-session")
+        socket.on("list-session", (data) => {
+          document.getElementById("list").innerHTML = "<b> SESSÕES ATIVAS:<br><br></b>" + data.replace(/,/g,"<br>").replace(/.data.js./)
+        })
+      }
+
+      socket.on('message', (data) => {
+        document.querySelector("h1").innerHTML = data
+        socket.emit("message")
+        if (document.querySelector("h1").value = "CONNECTED") {
+          document.getElementById("img").style.display = "none";
+          socket.disconnect(true);
+        }
+      })
+
+      socket.emit("message")
+      
+    </script>
+  </body>
+</html>
