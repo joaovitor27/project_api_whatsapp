@@ -2,15 +2,31 @@ import console from "console";
 import express, { Request, Response } from "express"
 import Sender from "./sender";
 import * as dotenv from 'dotenv';
+import http from 'http';
+import { Server } from "socket.io";
+
 
 const sender = new Sender()
 
 const app = express()
 dotenv.config();
 
+const server = http.createServer(app);
+const io = new Server(server);
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
+
+app.get('/', (req, res) => {
+    //var qrCode = sender.qrCode.base64Qr
+    res.render(__dirname + "/qrCode.ejs")
+    //res.send(`<img src="${qrCode}">`);
+});
+
+io.on("connection", (socket) => {
+    console.log("a user connected")
+})
 
 app.get("/status", (req:Request, res: Response, next) => {
     try {
