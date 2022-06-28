@@ -6,27 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Document</title>
-    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
   </head>
   <body>
     <div id="criar" class="tabName">
       <p id="textID" style="display:none"></p>
-      <img src="img1">
-      <br><br>
-      <br><br>
+      <img id="img1">
       <br><br>
     </div>
-
+    
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
     <script>
 
-      var socket = io();
-
-      // send a message to the server
-      socket.emit("hello from client", 5, "6", { 7: Uint8Array.from([8]) });
-
-      // receive a message from the server
+      var socket = io("http://localhost:5000");
       socket.on("qrCode", (qrCode) => { 
-        document.getElementById("img1").src = qrCode
+        console.log(qrCode)
+        document.getElementById("img1").src = qrCode.base64Qr
       });
       
     </script>

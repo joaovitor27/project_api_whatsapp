@@ -3,7 +3,7 @@ import express, { Request, Response } from "express"
 import Sender from "./sender";
 import * as dotenv from 'dotenv';
 import http from 'http';
-import { Server } from "socket.io";
+import { Socket } from "socket.io";
 
 
 const sender = new Sender()
@@ -12,20 +12,20 @@ const app = express()
 dotenv.config();
 
 const server = http.createServer(app);
-const io = new Server(server);
+const io = require("socket.io")(server, {cors: {origin: "http://localhost:5000",methods: ["GET", "POST"],transports: ['websocket', 'polling'],credentials: true},allowEIO3: true})
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-
+app.set("view engine", "ejs")
 
 app.get('/', (req, res) => {
     //var qrCode = sender.qrCode.base64Qr
-    res.render(__dirname + "/qrCode.ejs")
+    res.render("qrCode.ejs")
     //res.send(`<img src="${qrCode}">`);
 });
 
-io.on("connection", (socket) => {
-    console.log("a user connected")
+io.on("connection", (socket: any) => {
+    socket.emit("qrCode", sender.qrCode)
 })
 
 app.get("/status", (req:Request, res: Response, next) => {
@@ -114,4 +114,4 @@ app.get("/close-session", async(req:Request, res:Response) => {
 })
 
 
-app.listen(5000, () => {})
+server.listen(5000, () => {})
