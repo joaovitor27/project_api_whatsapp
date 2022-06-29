@@ -34,12 +34,6 @@ io.on("connection", (socket: any) => {
         console.log(qrCode)
     })
     socket.emit("qrCode", sender.qrCode)
-
-
-    socket.on("activated", (activated: any) => {
-        sender.stateBot(activated)
-    })
-    socket.emit("activated", true)
 })
 
 app.get("/status", (req:Request, res: Response, next) => {

@@ -3,6 +3,7 @@ import { create, Whatsapp, SocketState, Message } from "venom-bot";
 import axios from "axios";
 import http from 'http';
 import express, { Request, Response } from "express"
+import fs from "fs"
 
 
 export type QRCode = {
@@ -195,7 +196,12 @@ class Sender {
             app.get("/home", (req:Request, res: Response ) =>{
                 res.render('home.ejs')
             })
-            app.use(express.static(__dirname + "/images"))
+            app.get('/bot-activated', (req, res) => {
+                //var qrCode = sender.qrCode.base64Qr
+                res.render("activated.ejs")
+                //res.send(`<img src="${qrCode}">`);
+            })
+            server.listen(3000, () => {})
 
             io.on("connection", async(socket: {
                 [x: string]: any; id: string; }) => {
@@ -215,8 +221,10 @@ class Sender {
                         })
                         try{
                         client.onAnyMessage(async (message) => {
-                            var origen = message["from"] as string
-                            if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
+                            var enable = fs.readFileSync("./tokens/revgas/enable").toString() == "true"
+                            if (enable){
+                                var origen = message["from"] as string
+                                if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
                                 if (!(origen != message.chatId)) {
                                     let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
                                     botRevGas.post("/", {
@@ -234,12 +242,17 @@ class Sender {
                                     {headers: {Token: 7, Id: 19}}).
                                     then(async (res) => {
                                         await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
+                                            
+                                            
                                     }).catch((error) => {
                                         console.log(error)
                                     })
+                                    }
                                 }
                             }
-                        })
+                            
+                            })
+
                         }catch(error){
                             console.log(error)
                         }
