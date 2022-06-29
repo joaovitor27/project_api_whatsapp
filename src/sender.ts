@@ -1,6 +1,8 @@
 import parsePhoneNumber, { isValidPhoneNumber } from "libphonenumber-js";
 import { create, Whatsapp, SocketState, Message } from "venom-bot";
 import axios from "axios";
+import http from 'http';
+import express, { Request, Response } from "express"
 
 
 export type QRCode = {
@@ -166,11 +168,19 @@ class Sender {
           
     }
 
-    async closeSession(){
-        await this.client.close()
+    stateBot(activated: any){
+        var activatedBot = activated
+        console.log(activatedBot)
+        return activatedBot
     }  
 
     private initialize() {
+        
+        const app = express()
+        const server = http.createServer(app);
+        const io = require("socket.io")(server, {cors: {origin: "http://localhost:5000",methods: ["GET", "POST"],transports: ['websocket', 'polling'],credentials: true},allowEIO3: true})
+
+
         const qr = (base64Qr: string) => {
             this.qr = { base64Qr }
         }
@@ -180,47 +190,81 @@ class Sender {
         }
 
         try{
-            const start = (client: Whatsapp) => {
-                this.client = client
-                client.onStateChange((state) => {
-                    this.connected = state === SocketState.CONNECTED
-                    
-                })
-                const botRevGas = axios.create({
-                    baseURL: "http://18.231.43.57"
-                })
-                try{
-                client.onAnyMessage(async (message) => {
-                    var origen = message["from"] as string
-                    if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
-                        if (!(origen != message.chatId)) {
-                            let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
-                            botRevGas.post("/", {
-                                "appPackageName": "venom",
-                                "messengerPackageName": "com.whatsapp",
-                                "query": {
-                                    "sender": phoneNumber,
-                                    "message": message.body,
-                                    "isGroup": false,
-                                    "groupParticipant": "",
-                                    "ruleId": 43,
-                                    "isTestMessage": false
+            app.set("view engine", "ejs")
+
+            app.get("/home", (req:Request, res: Response ) =>{
+                res.render('home.ejs')
+            })
+            app.use(express.static(__dirname + "/images"))
+
+            io.on("connection", async(socket: {
+                [x: string]: any; id: string; }) => {
+                console.log("User connected:" + socket.id);
+
+                const createSession = function(id:string) {
+                    create(id, qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
+
+                    function start(client: Whatsapp) {
+                        client = client
+                        client.onStateChange((state) => {
+                            socket.emit('message', "status" + state)
+                            console.log("state changed:", state)
+
+                        })
+                        const botRevGas = axios.create({
+                            baseURL: "http://18.231.43.57"
+                        })
+                        try{
+                        client.onAnyMessage(async (message) => {
+                            var origen = message["from"] as string
+                            if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
+                                if (!(origen != message.chatId)) {
+                                    let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
+                                    botRevGas.post("/", {
+                                        "appPackageName": "venom",
+                                        "messengerPackageName": "com.whatsapp",
+                                        "query": {
+                                            "sender": phoneNumber,
+                                            "message": message.body,
+                                            "isGroup": false,
+                                            "groupParticipant": "",
+                                            "ruleId": 43,
+                                            "isTestMessage": false
+                                        }
+                                    },
+                                    {headers: {Token: 7, Id: 19}}).
+                                    then(async (res) => {
+                                        await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
+                                    }).catch((error) => {
+                                        console.log(error)
+                                    })
                                 }
-                            },
-                            {headers: {Token: 7, Id: 19}}).
-                            then(async (res) => {
-                                await this.client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
-                            }).catch((error) => {
-                                console.log(error)
-                            })
+                            }
+                        })
+                        }catch(error){
+                            console.log(error)
                         }
                     }
-                })
-                }catch(error){
-                    console.log(error)
                 }
-            }
-            create('revgas', qr).then((revgas) => { start(revgas) }).catch((error) => { console.error(error) })
+                socket.on("create-session", function(data: { id: string; }){
+                    console.log("create session:", data.id)
+                    createSession(data.id)
+                    socket.emit("session", data.id + ".png");
+                });
+
+                socket.on("qrcode", function(data: string){
+                    setTimeout(function(){
+                        socket.emit("qrcode", data + ".png");
+                    }, 5000);
+                });
+
+                socket.on("qrcodeLoad", function(data: string){
+                    setTimeout(function(){
+                        socket.emit("qrcodeLoad", data + ".png");
+                    }, 2000);
+                });
+
+            })
 
         }catch(error){
             console.log(error)
