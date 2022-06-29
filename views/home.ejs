@@ -1,0 +1,68 @@
+<!-- ./client/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+  </head>
+  <body>
+    <div id="criar" class="tabName">
+      <p id="textID" style="display:none"></p>
+      <img id="img1">
+      <br><br>
+      <input id="idInput">
+      <br><br>
+      <button onclick="criarSessao()">Criar Sessão</button> <button onclick="carregarSessao()">Recarregar qrCode</button>
+      <br><br>
+    </div>
+    <hr>
+    <h3>asdjkasdojasdoipas</h3>
+    <div class="w3-bar w3-black">
+      <button onclick="carregarTab('criar')">criar</button>
+    </div>
+    <script>
+      function carregarTab(tabName) {
+        var i;
+        var x = document.getElementsByClassName("tabName");
+        for(i=0; i<x.length;i++){
+          x[i].style.display = "none";
+        }
+        document.getElementById(tabName).style.display = "block"
+      }
+    </script>
+
+    <script>
+      const socket = io("http://localhost:3000");
+      function criarSessao() {
+        socket.emit("create-session", {id:document.getElementById('idInput').value});
+        socket.emit('qrcode')
+        socket.on('qrcode', (qrCode) => {
+          document.getElementById("textID").style.display = "block";
+          document.getElementById("textID").innerHTML = "<b>ID DA instancia: </b>" + document.getElementById('idInput').value;
+          document.getElementById("img1").src = qrCode.base64Qr;
+        })
+      }
+      function carregarSessao() {
+        socket.on('qrcodeLoad', (data) => {
+          document.getElementById("img1").src = data;
+        })
+        socket.emit('qrcodeLoad')
+      }
+
+
+      socket.on('message', (data) => {
+        document.querySelector("h1").innerHTML = data
+        socket.emit("message")
+        if (document.querySelector("h1").value = "CONNECTED") {
+          document.getElementById("img").style.display = "none";
+          socket.disconnect(true);
+        }
+      })
+      socket.emit("message")
+      
+    </script>
+  </body>
+</html>

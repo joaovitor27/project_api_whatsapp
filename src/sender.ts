@@ -205,7 +205,6 @@ class Sender {
                     create(id, qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
 
                     function start(client: Whatsapp) {
-                        client = client
                         client.onStateChange((state) => {
                             socket.emit('message', "status" + state)
                             console.log("state changed:", state)
