@@ -13,20 +13,24 @@
 
 <body>
   <div class="container" style="width: 100vw; height: 100vh; display: flex; flex-direction: row; justify-content: center; align-items: center;">
-    <div id="criar" class="tabName">
-      <h1>RevGás</h1>
-      <h3></h3>
-      <p id="textID" style="display:none"></p>
-      <img id="img1">
-      <h3></h3>
-      <div class="col-12">
-        <label for="inputAddress" class="form-label">Session</label>
-        <input type="text" class="form-control" id="idInput" placeholder="Digite o Nome da Sessão">
+    <div class="position-relative">
+      <div class="position-absolute top-50 start-50 translate-middle">
+        <div id="criar" class="tabName" style="align-items: center;">
+          <img id="logo" src="images/logo.png">
+          <h3></h3>
+          <p id="textID" style="display:none"></p>
+          <img class="rounded mx-auto d-block" id="img1">
+          <h3></h3>
+          <div class="col-12">
+            <label for="inputAddress" class="form-label">Session:</label>
+            <input type="text" class="form-control" id="idInput" placeholder="Digite o Nome da Sessão">
+          </div>
+          <br>
+          <button class="btn btn-primary" onclick="criarSessao()">Criar Sessão</button> <button class="btn btn-primary"
+            onclick="carregarSessao()">Recarregar qrCode</button>
+          <br><br>
+        </div>
       </div>
-      <br>
-      <button class="btn btn-primary" onclick="criarSessao()">Criar Sessão</button> <button class="btn btn-primary"
-        onclick="carregarSessao()">Recarregar qrCode</button>
-      <br><br>
     </div>
   </div>
 
@@ -49,17 +53,17 @@
       socket.on('qrcode', (data) => {
         document.getElementById("textID").style.display = "block";
         document.getElementById("textID").innerHTML = "<b>Id da instancia: </b>" + document.getElementById('idInput').value;
-        document.getElementById("img1").src = "images/" + document.getElementById("idInput").value + ".png"
+        document.getElementById("img1").src = data
       });
-      socket.emit('qrcode');
+      socket.emit('qrcode', "images/" + document.getElementById("idInput").value);
     }
 
     function carregarSessao() {
       socket.on('qrcodeLoad', (data) => {
         document.getElementById("img1").src = "images/" + document.getElementById("idInput").value + ".png"
         console.log(data);
-        socket.emit('qrcodeLoad', data + document.getElementById("idInput").value + ".png");
       });
+      socket.emit('qrcodeLoad', "images/" + document.getElementById("idInput").value);
     }
 
 

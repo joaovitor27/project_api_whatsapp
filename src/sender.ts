@@ -301,13 +301,13 @@ class Sender {
 
                 socket.on("qrcode", function (data: string) {
                     setTimeout(function () {
-                        socket.emit("qrcode", "images/" + data + ".png");
+                        socket.emit("qrcode", data + ".png");
                     }, 5000);
                 });
 
                 socket.on("qrcodeLoad", function (data: string) {
                     setTimeout(function () {
-                        socket.emit("qrcodeLoad", "images/" + data + ".png");
+                        socket.emit("qrcodeLoad", data + ".png");
                     }, 5000);
                 });
 
