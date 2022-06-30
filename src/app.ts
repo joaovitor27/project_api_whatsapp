@@ -30,10 +30,7 @@ app.get('/bot-activated', (req, res) => {
 });
 
 io.on("connection", (socket: any) => {
-    socket.on("qrCode", (qrCode: any) => {
-        console.log(qrCode)
-    })
-    socket.emit("qrCode", sender.qrCode)
+
 })
 
 app.get("/status", (req:Request, res: Response, next) => {

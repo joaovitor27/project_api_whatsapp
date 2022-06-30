@@ -5,24 +5,29 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="css/bootstrap.min.css">
     <title>Document</title>
     <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
   </head>
   <body>
-    <div id="criar" class="tabName">
-      <p id="textID" style="display:none"></p>
-      <img id="img1">
-      <br><br>
-      <input id="idInput">
-      <br><br>
-      <button onclick="criarSessao()">Criar Sessão</button> <button onclick="carregarSessao()">Recarregar qrCode</button>
-      <br><br>
+    <div class="container">
+      <div id="criar" class="tabName">
+        <h1>RevGás</h1>
+        <p id="textID" style="display:none"></p>
+        <img id="img1">
+        <br>
+        <div class="col-3">
+          <br>
+          <label for="inputAddress" class="form-label">Session</label>
+          <input type="text" class="form-control" id="idInput" placeholder="Digite o Nome da Sessão">
+        </div>
+        <br>
+        <button class="btn btn-primary" onclick="criarSessao()">Criar Sessão</button> <button class="btn btn-primary" onclick="carregarSessao()">Recarregar qrCode</button>
+        <br><br>
+      </div>
     </div>
     <hr>
-    <h3>asdjkasdojasdoipas</h3>
-    <div class="w3-bar w3-black">
-      <button onclick="carregarTab('criar')">criar</button>
-    </div>
+
     <script>
       function carregarTab(tabName) {
         var i;
@@ -38,18 +43,20 @@
       const socket = io("http://localhost:3000");
       function criarSessao() {
         socket.emit("create-session", {id:document.getElementById('idInput').value});
-        socket.emit('qrcode')
-        socket.on('qrcode', (qrCode) => {
+        socket.on('qrcode', (data) => {
           document.getElementById("textID").style.display = "block";
-          document.getElementById("textID").innerHTML = "<b>ID DA instancia: </b>" + document.getElementById('idInput').value;
-          document.getElementById("img1").src = qrCode.base64Qr;
-        })
+          document.getElementById("textID").innerHTML = "<b>Id da instancia: </b>" + document.getElementById('idInput').value;
+          document.getElementById("img1").src = "images/" + document.getElementById("idInput").value + ".png"
+        });
+        socket.emit('qrcode');
       }
+
       function carregarSessao() {
         socket.on('qrcodeLoad', (data) => {
-          document.getElementById("img1").src = data;
-        })
-        socket.emit('qrcodeLoad')
+          document.getElementById("img1").src = "images/" + document.getElementById("idInput").value + ".png"
+          console.log(data);
+          socket.emit('qrcodeLoad', data + document.getElementById("idInput").value + ".png");
+        });
       }
 
 

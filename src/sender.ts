@@ -4,6 +4,7 @@ import axios from "axios";
 import http from 'http';
 import express, { Request, Response } from "express"
 import fs from "fs"
+import { Buffer } from 'buffer';
 
 
 export type QRCode = {
@@ -201,6 +202,9 @@ class Sender {
                 res.render("activated.ejs")
                 //res.send(`<img src="${qrCode}">`);
             })
+
+            app.use(express.static(__dirname + "/static"));
+            console.log(__dirname)
             server.listen(3000, () => {})
 
             io.on("connection", async(socket: {
@@ -208,7 +212,31 @@ class Sender {
                 console.log("User connected:" + socket.id);
 
                 const createSession = function(id:string) {
-                    create(id, qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
+                    //create(id, qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
+                    create(
+                        'sessionName',
+                        (base64Qr, asciiQR) => {
+                          console.log(asciiQR); // Optional to log the QR in the terminal
+                          var matches = base64Qr.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/) as any, response = {} as any;
+                            
+                          if (matches.length !== 3) {
+                            return new Error('Invalid input string');
+                          }
+                          response.type = matches[1];
+                          response.data = Buffer.from(matches[2], 'base64');
+                    
+                          var imageBuffer = response;
+                          require('fs').writeFile(
+                            './src/static/images/' + id + ".png",
+                            imageBuffer['data'],
+                            'binary',
+                            function (err: null) {
+                              if (err != null) {
+                                console.log(err);
+                            }}
+                          );
+                        },undefined,{ logQR: false }
+                      ).then((client) => {start(client);}).catch((erro) => {console.log(erro);});
 
                     function start(client: Whatsapp) {
                         client.onStateChange((state) => {
@@ -261,19 +289,19 @@ class Sender {
                 socket.on("create-session", function(data: { id: string; }){
                     console.log("create session:", data.id)
                     createSession(data.id)
-                    socket.emit("session", data.id + ".png");
+                    socket.emit("qrcode", "images/" + data.id + ".png");
                 });
 
                 socket.on("qrcode", function(data: string){
                     setTimeout(function(){
-                        socket.emit("qrcode", data + ".png");
+                        socket.emit("qrcode", "images/" + data + ".png");
                     }, 5000);
                 });
 
                 socket.on("qrcodeLoad", function(data: string){
                     setTimeout(function(){
-                        socket.emit("qrcodeLoad", data + ".png");
-                    }, 2000);
+                        socket.emit("qrcodeLoad", "images/" + data + ".png");
+                    }, 5000);
                 });
 
             })
