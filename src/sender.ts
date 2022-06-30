@@ -27,7 +27,7 @@ class Sender {
     get getMessage(): message {
         return this.msg
     }
-    
+
     get isConnected(): boolean {
         return this.connected
     }
@@ -64,10 +64,10 @@ class Sender {
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
 
         let messagesAll = await this.client.getAllMessagesInChat(phoneNumber, false, true);
-        
+
         var mensagens: message[] = []
         for (let index = 0; index < messagesAll.length; index++) {
-            const element: {[index:string]:any} = messagesAll[index];
+            const element: { [index: string]: any } = messagesAll[index];
             const idMessage = element["id"]
             const type = element["type"]
             const message = element["body"]
@@ -78,7 +78,7 @@ class Sender {
             const chatId = element["chatId"]
             const mediaData = element["mediaData"]
 
-            if (type == "location"){
+            if (type == "location") {
                 const lat = element["lat"]
                 const lng = element["lng"]
 
@@ -97,8 +97,8 @@ class Sender {
                 } as never
                 mensagens.push(newMessage)
 
-            } else{
-                if (type == "image"||type == "video"||type=="audio"||type=="ptt"){
+            } else {
+                if (type == "image" || type == "video" || type == "audio" || type == "ptt") {
                     const newMessage = {
                         "idMensagem": idMessage,
                         "type": type,
@@ -152,7 +152,7 @@ class Sender {
     // }
 
 
-    async sendListMenu(number:string, title: string, subTitle: string, description: string, buttonText:string, listMenu: []) {
+    async sendListMenu(number: string, title: string, subTitle: string, description: string, buttonText: string, listMenu: []) {
         if (!isValidPhoneNumber(number, "BR")) {
             throw new Error("Invalid number!")
         }
@@ -161,26 +161,28 @@ class Sender {
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
 
         await this.client.sendListMenu(phoneNumber, title, subTitle, description, buttonText, listMenu)
-          .then((result) => {
-            console.log('Result: ', result); //return object success
-          })
-          .catch((erro) => {
-            console.error('Error when sending: ', erro); //return object error
-          });
-          
+            .then((result) => {
+                console.log('Result: ', result); //return object success
+            })
+            .catch((erro) => {
+                console.error('Error when sending: ', erro); //return object error
+            });
+
     }
 
-    stateBot(activated: any){
-        var activatedBot = activated
-        console.log(activatedBot)
-        return activatedBot
-    }  
+    async activated(session: any, enable: any) {
+        if (!enable) {
+            fs.writeFileSync("./tokens/" + session + "/enable", "false");
+        } else {
+            fs.writeFileSync("./tokens/" + session + "/enable", "true");
+        }
+    }
 
     private initialize() {
-        
+
         const app = express()
         const server = http.createServer(app);
-        const io = require("socket.io")(server, {cors: {origin: "http://localhost:5000",methods: ["GET", "POST"],transports: ['websocket', 'polling'],credentials: true},allowEIO3: true})
+        const io = require("socket.io")(server, { cors: { origin: "http://localhost:5000", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
 
 
         const qr = (base64Qr: string) => {
@@ -191,10 +193,10 @@ class Sender {
             this.connected = ["inLogged", "qrReadSuccess", "chatsAvailable"].includes(statusSession)
         }
 
-        try{
+        try {
             app.set("view engine", "ejs")
 
-            app.get("/home", (req:Request, res: Response ) =>{
+            app.get("/home", (req: Request, res: Response) => {
                 res.render('home.ejs')
             })
             app.get('/bot-activated', (req, res) => {
@@ -204,109 +206,114 @@ class Sender {
             })
 
             app.use(express.static(__dirname + "/static"));
-            console.log(__dirname)
-            server.listen(3000, () => {})
+            server.listen(3000, () => { })
 
-            io.on("connection", async(socket: {
-                [x: string]: any; id: string; }) => {
+            io.on("connection", async (socket: {
+                [x: string]: any; id: string;
+            }) => {
                 console.log("User connected:" + socket.id);
 
-                const createSession = function(id:string) {
+                const createSession = function (id: string) {
                     //create(id, qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
-                    create(
-                        'sessionName',
-                        (base64Qr, asciiQR) => {
-                          console.log(asciiQR); // Optional to log the QR in the terminal
-                          var matches = base64Qr.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/) as any, response = {} as any;
-                            
-                          if (matches.length !== 3) {
+                    create(id, (base64Qr, asciiQR) => {
+                        console.log(asciiQR);
+                        var matches = base64Qr.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/) as any, response = {} as any;
+
+                        if (matches.length !== 3) {
                             return new Error('Invalid input string');
-                          }
-                          response.type = matches[1];
-                          response.data = Buffer.from(matches[2], 'base64');
-                    
-                          var imageBuffer = response;
-                          require('fs').writeFile(
+                        }
+
+                        response.type = matches[1];
+                        response.data = Buffer.from(matches[2], 'base64');
+
+                        var imageBuffer = response;
+                        require('fs').writeFile(
                             './src/static/images/' + id + ".png",
                             imageBuffer['data'],
                             'binary',
                             function (err: null) {
-                              if (err != null) {
-                                console.log(err);
-                            }}
-                          );
-                        },undefined,{ logQR: false }
-                      ).then((client) => {start(client);}).catch((erro) => {console.log(erro);});
+                                if (err != null) {
+                                    console.log(err);
+                                }
+                            }
+                        );
+                    }, undefined, { logQR: false }
+                    ).then((client) => { start(client); }).catch((erro) => { console.log(erro); });
+
 
                     function start(client: Whatsapp) {
-                        client.onStateChange((state) => {
-                            socket.emit('message', "status" + state)
-                            console.log("state changed:", state)
+                        fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
+                            if (err) throw err;
+                        });
 
+                        client.onStateChange((state) => {
+                            socket.emit('message', "status " + state)
                         })
+
                         const botRevGas = axios.create({
                             baseURL: "http://18.231.43.57"
                         })
-                        try{
-                        client.onAnyMessage(async (message) => {
-                            var enable = fs.readFileSync("./tokens/revgas/enable").toString() == "true"
-                            if (enable){
-                                var origen = message["from"] as string
-                                if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
-                                if (!(origen != message.chatId)) {
-                                    let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
-                                    botRevGas.post("/", {
-                                        "appPackageName": "venom",
-                                        "messengerPackageName": "com.whatsapp",
-                                        "query": {
-                                            "sender": phoneNumber,
-                                            "message": message.body,
-                                            "isGroup": false,
-                                            "groupParticipant": "",
-                                            "ruleId": 43,
-                                            "isTestMessage": false
+
+                        try {
+                            client.onAnyMessage(async (message) => {
+                                var enable = fs.readFileSync("./tokens/revgas/enable").toString() == "true"
+                                if (enable) {
+                                    var origen = message["from"] as string
+                                    if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
+                                        if (!(origen != message.chatId)) {
+                                            let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
+                                            botRevGas.post("/", {
+                                                "appPackageName": "venom",
+                                                "messengerPackageName": "com.whatsapp",
+                                                "query": {
+                                                    "sender": phoneNumber,
+                                                    "message": message.body,
+                                                    "isGroup": false,
+                                                    "groupParticipant": "",
+                                                    "ruleId": 43,
+                                                    "isTestMessage": false
+                                                }
+                                            },
+                                                { headers: { Token: 7, Id: 19 } }).
+                                                then(async (res) => {
+                                                    await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
+
+
+                                                }).catch((error) => {
+                                                    console.log(error)
+                                                })
                                         }
-                                    },
-                                    {headers: {Token: 7, Id: 19}}).
-                                    then(async (res) => {
-                                        await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
-                                            
-                                            
-                                    }).catch((error) => {
-                                        console.log(error)
-                                    })
                                     }
                                 }
-                            }
-                            
+
                             })
 
-                        }catch(error){
+                        } catch (error) {
                             console.log(error)
                         }
                     }
                 }
-                socket.on("create-session", function(data: { id: string; }){
+                socket.on("create-session", function (data: { id: string; }) {
                     console.log("create session:", data.id)
                     createSession(data.id)
-                    socket.emit("qrcode", "images/" + data.id + ".png");
+                    socket.emit("session", "images/" + data.id + ".png");
                 });
 
-                socket.on("qrcode", function(data: string){
-                    setTimeout(function(){
+                socket.on("qrcode", function (data: string) {
+                    setTimeout(function () {
                         socket.emit("qrcode", "images/" + data + ".png");
                     }, 5000);
                 });
 
-                socket.on("qrcodeLoad", function(data: string){
-                    setTimeout(function(){
+                socket.on("qrcodeLoad", function (data: string) {
+                    setTimeout(function () {
                         socket.emit("qrcodeLoad", "images/" + data + ".png");
                     }, 5000);
                 });
 
             })
 
-        }catch(error){
+        } catch (error) {
             console.log(error)
         }
 
