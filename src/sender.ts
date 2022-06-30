@@ -206,6 +206,7 @@ class Sender {
             })
 
             app.use(express.static(__dirname + "/static"));
+            console.log(__dirname)
             server.listen(3000, () => { })
 
             io.on("connection", async (socket: {
@@ -296,19 +297,18 @@ class Sender {
                 socket.on("create-session", function (data: { id: string; }) {
                     console.log("create session:", data.id)
                     createSession(data.id)
-                    socket.emit("session", "images/" + data.id + ".png");
                 });
-
+                
                 socket.on("qrcode", function (data: string) {
-                    setTimeout(function () {
-                        socket.emit("qrcode", data + ".png");
-                    }, 5000);
+                    setTimeout(function (){
+                        socket.emit("qrcode", data);
+                    },2000);
                 });
 
                 socket.on("qrcodeLoad", function (data: string) {
                     setTimeout(function () {
                         socket.emit("qrcodeLoad", data + ".png");
-                    }, 5000);
+                    }, 2000);
                 });
 
             })

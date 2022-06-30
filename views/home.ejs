@@ -27,7 +27,7 @@
           </div>
           <br>
           <button class="btn btn-primary" onclick="criarSessao()">Criar Sessão</button> <button class="btn btn-primary"
-            onclick="carregarSessao()">Recarregar qrCode</button>
+            onclick="carregarSessao()">Recarregar QRCode</button>
           <br><br>
         </div>
       </div>
@@ -50,22 +50,21 @@
     const socket = io("http://localhost:3000");
     function criarSessao() {
       socket.emit("create-session", { id: document.getElementById('idInput').value });
-      socket.on('qrcode', (data) => {
-        document.getElementById("textID").style.display = "block";
-        document.getElementById("textID").innerHTML = "<b>Id da instancia: </b>" + document.getElementById('idInput').value;
-        document.getElementById("img1").src = data
-      });
-      socket.emit('qrcode', "images/" + document.getElementById("idInput").value);
     }
+
+    socket.on('qrcode', (data) => {
+      document.getElementById("textID").style.display = "block";
+      document.getElementById("textID").innerHTML = "<b>Id da instancia: </b>" + document.getElementById('idInput').value;
+      document.getElementById("img1").src = "images/" + document.getElementById("idInput").value + ".png"
+      socket.emit('qrcode', "images/" + document.getElementById("idInput").value + ".png")
+    });
 
     function carregarSessao() {
       socket.on('qrcodeLoad', (data) => {
         document.getElementById("img1").src = "images/" + document.getElementById("idInput").value + ".png"
-        console.log(data);
       });
-      socket.emit('qrcodeLoad', "images/" + document.getElementById("idInput").value);
+      socket.emit('qrcodeLoad', "images/" + document.getElementById("idInput").value + ".png");
     }
-
 
     socket.on('message', (data) => {
       document.querySelector("h3").innerHTML = data
