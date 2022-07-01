@@ -239,10 +239,7 @@ class Sender {
                         );
                     }, undefined, { logQR: false }
                     ).then((client) => { 
- 
-                        console.log("state CONECTADO",)
-                            socket.emit('message', "state CONECTADO")
-
+                        socket.emit('message', "Conectado")
                         start(client); 
                     }).catch((erro) => { console.log("não foi conectado", erro); });
 
