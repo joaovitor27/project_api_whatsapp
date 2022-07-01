@@ -51,7 +51,7 @@ class Sender {
 
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
-
+        console.log(this.client)
         await this.client.sendText(phoneNumber, body).catch((error) => { console.error('Error when sending: ', error); });
     }
 
@@ -218,7 +218,6 @@ class Sender {
                     //create(id, qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
                     create(id, (base64Qr, asciiQR, attempts) => {
                         socket.emit("attempts", attempts)
-                        console.log(asciiQR);
                         var matches = base64Qr.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/) as any, response = {} as any;
 
                         if (matches.length !== 3) {
@@ -227,8 +226,6 @@ class Sender {
 
                         response.type = matches[1];
                         response.data = Buffer.from(matches[2], 'base64');
-                        console.log(response)
-                        console.log(response.data)
                         var imageBuffer = response;
                         require('fs').writeFile(
                             './src/static/QRcodes/' + id + ".png",
@@ -250,50 +247,51 @@ class Sender {
                     }).catch((erro) => { console.log("não foi conectado", erro); });
 
 
-                    function start(client: Whatsapp) {
-                        fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
-                            if (err) throw err;
-                        });
-                        const botRevGas = axios.create({
-                            baseURL: "http://18.231.43.57"
-                        })
-                        try {
-                            client.onAnyMessage(async (message) => {
-                                var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
-                                if (enable) {
-                                    var origen = message["from"] as string
-                                    if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
-                                        if (!(origen != message.chatId)) {
-                                            let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
-                                            botRevGas.post("/", {
-                                                "appPackageName": "venom",
-                                                "messengerPackageName": "com.whatsapp",
-                                                "query": {
-                                                    "sender": phoneNumber,
-                                                    "message": message.body,
-                                                    "isGroup": false,
-                                                    "groupParticipant": "",
-                                                    "ruleId": 43,
-                                                    "isTestMessage": false
-                                                }
-                                            },
-                                                { headers: { Token: 7, Id: 19 } }).
-                                                then(async (res) => {
-                                                    await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
+                }
+                const start = (client: Whatsapp) => {
+                    this.client = client
+                    fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
+                        if (err) throw err;
+                    });
+                    const botRevGas = axios.create({
+                        baseURL: "http://18.231.43.57"
+                    })
+                    try {
+                        client.onAnyMessage(async (message) => {
+                            var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
+                            if (enable) {
+                                var origen = message["from"] as string
+                                if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
+                                    if (!(origen != message.chatId)) {
+                                        let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
+                                        botRevGas.post("/", {
+                                            "appPackageName": "venom",
+                                            "messengerPackageName": "com.whatsapp",
+                                            "query": {
+                                                "sender": phoneNumber,
+                                                "message": message.body,
+                                                "isGroup": false,
+                                                "groupParticipant": "",
+                                                "ruleId": 43,
+                                                "isTestMessage": false
+                                            }
+                                        },
+                                            { headers: { Token: 7, Id: 19 } }).
+                                            then(async (res) => {
+                                                await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
 
 
-                                                }).catch((error) => {
-                                                    console.log(error)
-                                                })
-                                        }
+                                            }).catch((error) => {
+                                                console.log(error)
+                                            })
                                     }
                                 }
+                            }
 
-                            })
+                        })
 
-                        } catch (error) {
-                            console.log(error)
-                        }
+                    } catch (error) {
+                        console.log(error)
                     }
                 }
                 socket.on("create-session", function (data: { id: string; }) {
