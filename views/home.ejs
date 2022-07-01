@@ -8,7 +8,6 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <link rel="stylesheet" href="css/bootstrap.min.css">
   <title>Document</title>
-  <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
 </head>
 
 <body>
@@ -16,67 +15,27 @@
     <div class="position-relative">
       <div class="position-absolute top-50 start-50 translate-middle">
         <div id="criar" class="tabName" style="align-items: center;">
-          <img id="logo" src="images/logo.png">
-          <h3></h3>
+          <img id="logo" src="img/logo.png">
+          <br><br>
           <p id="textID" style="display:none"></p>
           <img class="rounded mx-auto d-block" id="img1">
           <h3></h3>
           <div class="col-12">
-            <label for="inputAddress" class="form-label">Session:</label>
-            <input type="text" class="form-control" id="idInput" placeholder="Digite o Nome da Sessão">
+            <label for="inputAddress" class="form-label">Sessão:</label>
+            <input type="number" class="form-control" id="idInput" placeholder="Digite o Número do Whatsapp">
           </div>
           <br>
-          <button class="btn btn-primary" onclick="criarSessao()">Criar Sessão</button> <button class="btn btn-primary"
-            onclick="carregarSessao()">Recarregar QRCode</button>
+          <div class="d-grid gap-2 col-5 mx-auto">
+            <button class="btn" style="background-color: #F15A22; color: white;" onclick="criarSessao()">Criar</button>
+          </div>
           <br><br>
         </div>
       </div>
     </div>
   </div>
-
-
-  <script>
-    function carregarTab(tabName) {
-      var i;
-      var x = document.getElementsByClassName("tabName");
-      for (i = 0; i < x.length; i++) {
-        x[i].style.display = "none";
-      }
-      document.getElementById(tabName).style.display = "block"
-    }
-  </script>
-
-  <script>
-    const socket = io("http://localhost:3000");
-    function criarSessao() {
-      socket.emit("create-session", { id: document.getElementById('idInput').value });
-    }
-
-    socket.on('qrcode', (data) => {
-      document.getElementById("textID").style.display = "block";
-      document.getElementById("textID").innerHTML = "<b>Id da instancia: </b>" + document.getElementById('idInput').value;
-      document.getElementById("img1").src = "images/" + document.getElementById("idInput").value + ".png"
-      socket.emit('qrcode', "images/" + document.getElementById("idInput").value + ".png")
-    });
-
-    function carregarSessao() {
-      socket.on('qrcodeLoad', (data) => {
-        document.getElementById("img1").src = "images/" + document.getElementById("idInput").value + ".png"
-      });
-      socket.emit('qrcodeLoad', "images/" + document.getElementById("idInput").value + ".png");
-    }
-
-    socket.on('message', (data) => {
-      document.querySelector("h3").innerHTML = data
-      socket.emit("message")
-      if (document.querySelector("h3").value = " CONNECTED") {
-        document.getElementById("img1").style.display = "none";
-        socket.disconnect(true);
-      }
-    })
-    socket.emit("message")
-
-  </script>
 </body>
+
+<script src="js/socket.io-3.0.1.min.js"></script>
+<script src="js/QRcode.js"></script>
 
 </html>

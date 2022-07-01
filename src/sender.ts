@@ -182,7 +182,7 @@ class Sender {
 
         const app = express()
         const server = http.createServer(app);
-        const io = require("socket.io")(server, { cors: { origin: "http://localhost:5000", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
+        const io = require("socket.io")(server, { cors: { origin: "http://localhost:3000", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
 
 
         const qr = (base64Qr: string) => {
@@ -216,7 +216,8 @@ class Sender {
 
                 const createSession = function (id: string) {
                     //create(id, qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
-                    create(id, (base64Qr, asciiQR) => {
+                    create(id, (base64Qr, asciiQR, attempts) => {
+                        socket.emit("attempts", attempts)
                         console.log(asciiQR);
                         var matches = base64Qr.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/) as any, response = {} as any;
 
@@ -226,10 +227,11 @@ class Sender {
 
                         response.type = matches[1];
                         response.data = Buffer.from(matches[2], 'base64');
-
+                        console.log(response)
+                        console.log(response.data)
                         var imageBuffer = response;
                         require('fs').writeFile(
-                            './src/static/images/' + id + ".png",
+                            './src/static/QRcodes/' + id + ".png",
                             imageBuffer['data'],
                             'binary',
                             function (err: null) {
@@ -239,25 +241,25 @@ class Sender {
                             }
                         );
                     }, undefined, { logQR: false }
-                    ).then((client) => { start(client); }).catch((erro) => { console.log(erro); });
+                    ).then((client) => { 
+ 
+                        console.log("state CONECTADO",)
+                            socket.emit('message', "state CONECTADO")
+
+                        start(client); 
+                    }).catch((erro) => { console.log("não foi conectado", erro); });
 
 
                     function start(client: Whatsapp) {
                         fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
                             if (err) throw err;
                         });
-
-                        client.onStateChange((state) => {
-                            socket.emit('message', "status " + state)
-                        })
-
                         const botRevGas = axios.create({
                             baseURL: "http://18.231.43.57"
                         })
-
                         try {
                             client.onAnyMessage(async (message) => {
-                                var enable = fs.readFileSync("./tokens/revgas/enable").toString() == "true"
+                                var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
                                 if (enable) {
                                     var origen = message["from"] as string
                                     if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
@@ -299,16 +301,8 @@ class Sender {
                     createSession(data.id)
                 });
                 
-                socket.on("qrcode", function (data: string) {
-                    setTimeout(function (){
-                        socket.emit("qrcode", data);
-                    },2000);
-                });
-
-                socket.on("qrcodeLoad", function (data: string) {
-                    setTimeout(function () {
-                        socket.emit("qrcodeLoad", data + ".png");
-                    }, 2000);
+                socket.on("chamarqr", function (data: string) {
+                    socket.emit("qrcode","QRcodes/"+ data + ".png");
                 });
 
             })
