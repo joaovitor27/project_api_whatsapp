@@ -18,7 +18,7 @@ export type cards = {
 }
 
 class Sender {
-    private client!: Whatsapp
+    private clients: Map<string, Whatsapp> = new Map();
     private connected!: boolean
     private qr!: QRCode
     private msg!: message
@@ -44,26 +44,26 @@ class Sender {
         this.initialize()
     }
 
-    async message(to: string, body: string) {
+    async message(to: string, body: string, session: string) {
         if (!isValidPhoneNumber(to, "BR")) {
             throw new Error("Invalid number!")
         }
 
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
-        console.log(this.client)
-        await this.client.sendText(phoneNumber, body).catch((error) => { console.error('Error when sending: ', error); });
+        const client = this.clients.get(session) as Whatsapp
+        await client.sendText(phoneNumber, body).catch((error: any) => { console.error('Error when sending: ', error); });
     }
 
-    async getMessages(to: string) {
+    async getMessages(to: string, session: string) {
         if (!isValidPhoneNumber(to, "BR")) {
             throw new Error("Invalid number!")
         }
 
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
-
-        let messagesAll = await this.client.getAllMessagesInChat(phoneNumber, false, true);
+        const client = this.clients.get(session) as Whatsapp
+        let messagesAll = await client.getAllMessagesInChat(phoneNumber, false, true);
 
         var mensagens: message[] = []
         for (let index = 0; index < messagesAll.length; index++) {
@@ -133,26 +133,7 @@ class Sender {
     }
 
 
-    // async sendButtons(number:string, title:string, buttons:[], description:string) {
-
-    //     if (!isValidPhoneNumber(number, "BR")) {
-    //         throw new Error("Esse Numero não é valido")
-    //     }
-    //     let phoneNumber = parsePhoneNumber(number, "BR")?.format("E.164")?.replace("+", "") as string
-
-    //     phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
-
-    //     await this.client.sendButtons(phoneNumber, title, buttons, description)
-    //     .then((result) => {
-    //         console.log('Result: ', result);
-    //     })
-    //     .catch((erro) => {
-    //         console.error('Error when sending: ', erro);
-    //     });
-    // }
-
-
-    async sendListMenu(number: string, title: string, subTitle: string, description: string, buttonText: string, listMenu: []) {
+    async sendListMenu(session:string ,number: string, title: string, subTitle: string, description: string, buttonText: string, listMenu: []) {
         if (!isValidPhoneNumber(number, "BR")) {
             throw new Error("Invalid number!")
         }
@@ -160,11 +141,12 @@ class Sender {
         let phoneNumber = parsePhoneNumber(number, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
 
-        await this.client.sendListMenu(phoneNumber, title, subTitle, description, buttonText, listMenu)
-            .then((result) => {
+        const client = this.clients.get(session) as Whatsapp
+        await client.sendListMenu(phoneNumber, title, subTitle, description, buttonText, listMenu)
+            .then((result: any) => {
                 console.log('Result: ', result); //return object success
             })
-            .catch((erro) => {
+            .catch((erro: any) => {
                 console.error('Error when sending: ', erro); //return object error
             });
 
@@ -184,15 +166,6 @@ class Sender {
         const server = http.createServer(app);
         const io = require("socket.io")(server, { cors: { origin: "http://localhost:3000", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
 
-
-        const qr = (base64Qr: string) => {
-            this.qr = { base64Qr }
-        }
-
-        const status = (statusSession: string, session: string) => {
-            this.connected = ["inLogged", "qrReadSuccess", "chatsAvailable"].includes(statusSession)
-        }
-
         try {
             app.set("view engine", "ejs")
 
@@ -206,13 +179,9 @@ class Sender {
             })
 
             app.use(express.static(__dirname + "/static"));
-            console.log(__dirname)
             server.listen(3000, () => { })
 
-            io.on("connection", async (socket: {
-                [x: string]: any; id: string;
-            }) => {
-                console.log("User connected:" + socket.id);
+            io.on("connection", async (socket: {[x: string]: any; id: string;}) => {
 
                 const createSession = function (id: string) {
                     //create(id, qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
@@ -238,15 +207,15 @@ class Sender {
                             }
                         );
                     }, undefined, { logQR: false }
-                    ).then((client) => { 
-                        socket.emit('message', "Conectado")
+                    ).then((client) => {
                         start(client); 
                     }).catch((erro) => { console.log("não foi conectado", erro); });
-
-
                 }
+                
                 const start = (client: Whatsapp) => {
-                    this.client = client
+
+                    this.clients.set(client.session, client)
+
                     fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
                         if (err) throw err;
                     });

@@ -58,8 +58,8 @@ app.post("/message", async (req: Request, res: Response) => {
         if (!apiKey || apiKey !== process.env.API_KEY) {
             res.status(401).json({ error: 'unauthorised' })
         } else {
-            const { number, message } = req.body
-            await sender.message(number, message)
+            const { number, message, session } = req.body
+            await sender.message(number, message, session)
             return res.status(200).json({ success: "Message sent successfully" })
         }
     } catch (error) {
@@ -94,8 +94,8 @@ app.post("/menu", async (req: Request, res: Response) => {
         if (!apiKey || apiKey !== process.env.API_KEY) {
             res.status(401).json({ error: 'unauthorised' })
         } else {
-            const { number, title, subTitle, description, buttonText, listMenu } = req.body
-            await sender.sendListMenu(number, title, subTitle, description, buttonText, listMenu)
+            const { sesseion, number, title, subTitle, description, buttonText, listMenu } = req.body
+            await sender.sendListMenu(sesseion, number, title, subTitle, description, buttonText, listMenu)
 
             return res.status(200).json({ success: "Message sent successfully" })
         }
@@ -112,8 +112,8 @@ app.get("/get-messages", async (req: Request, res: Response) => {
         if (!apiKey || apiKey !== process.env.API_KEY) {
             res.status(401).json({ error: 'unauthorised' })
         } else {
-            let number = req.query.number as string
-            const getMessages = await sender.getMessages(number)
+            const {session ,number} = req.body
+            const getMessages = await sender.getMessages(session, number)
             return res.status(200).json(getMessages)
         }
 
