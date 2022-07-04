@@ -5,6 +5,8 @@ import http from 'http';
 import express, { Request, Response } from "express"
 import fs from "fs"
 import { Buffer } from 'buffer';
+import { parse, stringify, toJSON, fromJSON } from 'flatted';
+var sqlite = require("./clientsDB");
 
 
 export type QRCode = {
@@ -44,14 +46,15 @@ class Sender {
         this.initialize()
     }
 
-    async message(to: string, body: string, session: string) {
+    async message(to: string, body: string, session: Number) {
         if (!isValidPhoneNumber(to, "BR")) {
             throw new Error("Invalid number!")
         }
+        const client = await sqlite.getClient(session)
+        parse(client)
 
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
-        const client = this.clients.get(session) as Whatsapp
         await client.sendText(phoneNumber, body).catch((error: any) => { console.error('Error when sending: ', error); });
     }
 
@@ -161,15 +164,13 @@ class Sender {
     }
 
     private initialize() {
-        // Importing SQLite3 to our project.
-        var sqlite3 = require("sqlite3").verbose();
-        // Setting up a database for storing data.
-        var db = new sqlite3.Database("clients.db");
+
+        
 
         const app = express()
         const server = http.createServer(app);
         const io = require("socket.io")(server, { cors: { origin: "http://localhost:3000", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
-
+        
         try {
             app.set("view engine", "ejs")
 
@@ -258,6 +259,8 @@ class Sender {
                         fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
                             if (err) throw err;
                         });
+                        console.log(client)
+                        sqlite.insertDados(client.session, stringify(client))
                         start(client); 
                     }).catch((erro) => { console.log("não foi conectado", erro); });
                 }

@@ -4,3 +4,5 @@ tokens
 !./build/.keep
 .env
 *.db
+.vscode
+teste.session.sql
