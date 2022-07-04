@@ -3,3 +3,4 @@ node_modules
 tokens
 !./build/.keep
 .env
+*.db

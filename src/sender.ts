@@ -161,6 +161,10 @@ class Sender {
     }
 
     private initialize() {
+        // Importing SQLite3 to our project.
+        var sqlite3 = require("sqlite3").verbose();
+        // Setting up a database for storing data.
+        var db = new sqlite3.Database("clients.db");
 
         const app = express()
         const server = http.createServer(app);
