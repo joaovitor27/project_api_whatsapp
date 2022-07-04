@@ -180,10 +180,52 @@ class Sender {
 
             app.use(express.static(__dirname + "/static"));
             server.listen(3000, () => { })
+                            
+            const start = (client: Whatsapp) => {
+                const botRevGas = axios.create({
+                    baseURL: "http://18.231.43.57"
+                })
+                try {
+                    client.onAnyMessage(async (message) => {
+                        var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
+                        if (enable) {
+                            var origen = message["from"] as string
+                            if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
+                                if (!(origen != message.chatId)) {
+                                    let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
+                                    botRevGas.post("/", {
+                                        "appPackageName": "venom",
+                                        "messengerPackageName": "com.whatsapp",
+                                        "query": {
+                                            "sender": phoneNumber,
+                                            "message": message.body,
+                                            "isGroup": false,
+                                            "groupParticipant": "",
+                                            "ruleId": 43,
+                                            "isTestMessage": false
+                                        }
+                                    },
+                                        { headers: { Token: 7, Id: 19 } }).
+                                        then(async (res) => {
+                                            await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
 
+
+                                        }).catch((error) => {
+                                            console.log(error)
+                                        })
+                                }
+                            }
+                        }
+
+                    })
+
+                } catch (error) {
+                    console.log(error)
+                }
+            }
             io.on("connection", async (socket: {[x: string]: any; id: string;}) => {
 
-                const createSession = function (id: string) {
+                const createSession = (id: string) => {
                     //create(id, qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
                     create(id, (base64Qr, asciiQR, attempts) => {
                         socket.emit("attempts", attempts)
@@ -208,58 +250,14 @@ class Sender {
                         );
                     }, undefined, { logQR: false }
                     ).then((client) => {
+                        this.clients.set(client.session, client)
+                        fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
+                            if (err) throw err;
+                        });
                         start(client); 
                     }).catch((erro) => { console.log("não foi conectado", erro); });
                 }
-                
-                const start = (client: Whatsapp) => {
 
-                    this.clients.set(client.session, client)
-
-                    fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
-                        if (err) throw err;
-                    });
-                    const botRevGas = axios.create({
-                        baseURL: "http://18.231.43.57"
-                    })
-                    try {
-                        client.onAnyMessage(async (message) => {
-                            var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
-                            if (enable) {
-                                var origen = message["from"] as string
-                                if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
-                                    if (!(origen != message.chatId)) {
-                                        let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
-                                        botRevGas.post("/", {
-                                            "appPackageName": "venom",
-                                            "messengerPackageName": "com.whatsapp",
-                                            "query": {
-                                                "sender": phoneNumber,
-                                                "message": message.body,
-                                                "isGroup": false,
-                                                "groupParticipant": "",
-                                                "ruleId": 43,
-                                                "isTestMessage": false
-                                            }
-                                        },
-                                            { headers: { Token: 7, Id: 19 } }).
-                                            then(async (res) => {
-                                                await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
-
-
-                                            }).catch((error) => {
-                                                console.log(error)
-                                            })
-                                    }
-                                }
-                            }
-
-                        })
-
-                    } catch (error) {
-                        console.log(error)
-                    }
-                }
                 socket.on("create-session", function (data: { id: string; }) {
                     console.log("create session:", data.id)
                     createSession(data.id)
@@ -268,9 +266,11 @@ class Sender {
                 socket.on("chamarqr", function (data: string) {
                     socket.emit("qrcode","QRcodes/"+ data + ".png");
                 });
-
             })
 
+            if(!(this.clients.size == 0)){
+                start(this.clients.get("teste") as Whatsapp)
+            }
         } catch (error) {
             console.log(error)
         }
