@@ -6,3 +6,4 @@ tokens
 *.db
 .vscode
 teste.session.sql
+clients.session.sql

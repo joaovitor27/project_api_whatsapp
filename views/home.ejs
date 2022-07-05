@@ -18,15 +18,32 @@
           <img id="logo" src="img/logo.png">
           <br><br>
           <p id="textID" style="display:none"></p>
-          <img class="rounded mx-auto d-block" id="img1">
-          <h3></h3>
-          <div class="col-12">
-            <label for="inputAddress" class="form-label">Sessão:</label>
-            <input type="number" class="form-control" id="idInput" placeholder="Digite o Número do Whatsapp">
+          <div  id="carregando" class="text-center" style="display:none">
+            <div class="spinner-border" role="status" style="color: #F15A22;">
+              <span class="visually-hidden">Loading...</span>
+            </div>
           </div>
-          <br>
-          <div class="d-grid gap-2 col-5 mx-auto">
-            <button class="btn" style="background-color: #F15A22; color: white;" onclick="criarSessao()">Criar</button>
+          <div id="formulario">
+            <img class="rounded mx-auto d-block" id="img1">
+            <h3></h3>
+            <div class="col-12">
+              <label for="inputAddress" class="form-label">Sessão:</label>
+              <input type="number" class="form-control" id="idInput" placeholder="Digite o Número do Whatsapp">
+            </div>
+            <br>
+            <div class="d-grid gap-2 col-5 mx-auto">
+              <button class="btn" style="background-color: #F15A22; color: white;" onclick="criarSessao()">Criar</button>
+            </div>
+          </div>
+          <div id="activatedBot">
+            <div class="col-12">
+              <br>
+              <h5 id="statusBot"></h5>
+              <br>
+              <div class="d-grid gap-2 col-5 mx-auto">
+                <button id="activated" class="btn" style="background-color: #F15A22; color: white;" onclick="activatedBot()"></button>
+              </div>
+            </div>
           </div>
           <br><br>
         </div>
@@ -35,6 +52,7 @@
   </div>
 </body>
 
+<script src="js/bootstrap.min.js"></script>
 <script src="js/socket.io-3.0.1.min.js"></script>
 <script src="js/QRcode.js"></script>
 
