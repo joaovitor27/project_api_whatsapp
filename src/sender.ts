@@ -167,7 +167,7 @@ class Sender {
 
         const app = express()
         const server = http.createServer(app);
-        const io = require("socket.io")(server, { cors: { origin: "http://3.92.199.163", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
+        const io = require("socket.io")(server, { cors: { origin: "http://localhost:3000", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
         
         try {
             app.set("view engine", "ejs")
@@ -183,10 +183,19 @@ class Sender {
 
             app.use(express.static(__dirname + "/static"));
             server.listen(3000, () => { })
-            sqlite.crateTable()
-            
+            //sqlite.crateTable()
             io.on("connection", async (socket: {[x: string]: any; id: string;}) => {
-
+                var clients = await sqlite.getClients()
+                console.log(clients)
+                for(let index = 0; index < clients.length; index++){
+                    var element: any = clients[index];
+                    console.log("element", element)
+                    var session = element["session"]
+                    console.log("aquii", session)
+                    try{
+                        await create(session).then((client) => { start(client) }).catch((error) => { console.error(error) })
+                    }catch{}
+                }
                 function start (client: Whatsapp) {
                     console.log("Start", client)
     
@@ -226,7 +235,6 @@ class Sender {
                                 }
                             }
                         })
-    
                     } catch (error) {
                         console.log(error)
                     }

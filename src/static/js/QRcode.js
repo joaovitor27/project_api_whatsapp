@@ -1,4 +1,11 @@
-const socket = io("http://3.92.199.163");
+const socket = io("http://localhost:3000");
+
+var element = document.getElementById('idInput');
+var maskOptions = {
+    mask: '+00 (00) 00000-0000'
+};
+var mask = IMask(element, maskOptions);
+
 
 if (localStorage.getItem('session') == null){
     document.getElementById('activatedBot').style.display = 'none';
@@ -8,13 +15,13 @@ if (localStorage.getItem('session') == null){
     document.getElementById('activatedBot').style.display = 'block';
 }
 function criarSessao() {
-    socket.emit("create-session", { id: document.getElementById('idInput').value });
+    socket.emit("create-session", { id: mask.unmaskedValue });
     document.getElementById("carregando").style.display = 'block'
-    localStorage.setItem('session', document.getElementById('idInput').value);
+    localStorage.setItem('session', mask.unmaskedValue );
 }
 socket.on("attempts", (data) => {
     console.log(data)
-    socket.emit("chamarqr", document.getElementById("idInput").value)
+    socket.emit("chamarqr", mask.unmaskedValue)
 });
 
 socket.on('qrcode', (data) => {
@@ -22,7 +29,7 @@ socket.on('qrcode', (data) => {
     document.getElementById("textID").innerHTML = "<b>Id da instancia: </b>" + document.getElementById('idInput').value;
     document.getElementById("carregando").style.display = 'none'
     document.getElementById("img1").src = data + "?" + new Date().getTime()
-    socket.emit('qrcode', "QRcodes/" + document.getElementById("idInput").value + ".png")
+    socket.emit('qrcode', "QRcodes/" + mask.unmaskedValue + ".png")
 });
 
 socket.on('message', (data) => {
