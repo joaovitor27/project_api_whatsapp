@@ -1,5 +1,5 @@
 import parsePhoneNumber, { isValidPhoneNumber } from "libphonenumber-js";
-import { create, Whatsapp, SocketState, Message } from "venom-bot";
+import { create, Whatsapp } from "venom-bot";
 import axios from "axios";
 import http from 'http';
 import express, { Request, Response } from "express"
@@ -50,10 +50,10 @@ class Sender {
         if (!isValidPhoneNumber(to, "BR")) {
             throw new Error("Invalid number!")
         }
-        const client = this.clients.get(session) as Whatsapp
-        
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
+
+        const client = this.clients.get(session) as Whatsapp
         await client.sendText(phoneNumber, body).catch((error: any) => { console.error('Error when sending: ', error); });
     }
 
@@ -61,11 +61,10 @@ class Sender {
         if (!isValidPhoneNumber(to, "BR")) {
             throw new Error("Invalid number!")
         }
-
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
+
         const client = this.clients.get(session) as Whatsapp
-        console.log(client)
         let messagesAll = await client.getAllMessagesInChat(phoneNumber, false, true);
 
         var mensagens: message[] = []
@@ -140,20 +139,20 @@ class Sender {
         if (!isValidPhoneNumber(number, "BR")) {
             throw new Error("Invalid number!")
         }
-
         let phoneNumber = parsePhoneNumber(number, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
 
         const client = this.clients.get(session) as Whatsapp
         await client.sendListMenu(phoneNumber, title, subTitle, description, buttonText, listMenu)
             .then((result: any) => {
-                console.log('Result: ', result); //return object success
+                console.log('Result: ', result);
             })
             .catch((erro: any) => {
-                console.error('Error when sending: ', erro); //return object error
+                console.error('Error when sending: ', erro);
             });
 
     }
+
 
     async activated(session: any, enable: any) {
         if (!enable) {
@@ -162,6 +161,7 @@ class Sender {
             fs.writeFileSync("./tokens/" + session + "/enable", "true");
         }
     }
+
 
     private async initialize() {
 
@@ -175,35 +175,29 @@ class Sender {
             app.get("/home", (req: Request, res: Response) => {
                 res.render('home.ejs')
             })
-            app.get('/bot-activated', (req, res) => {
-                //var qrCode = sender.qrCode.base64Qr
-                res.render("activated.ejs")
-                //res.send(`<img src="${qrCode}">`);
-            })
 
             app.use(express.static(__dirname + "/static"));
             server.listen(3000, () => { })
             //sqlite.crateTable()
             io.on("connection", async (socket: {[x: string]: any; id: string;}) => {
                 var clients = await sqlite.getClients()
-                console.log(clients)
+
                 for(let index = 0; index < clients.length; index++){
                     var element: any = clients[index];
-                    console.log("element", element)
                     var session = element["session"]
-                    console.log("aquii", session)
                     try{
                         await create(session).then((client) => { start(client) }).catch((error) => { console.error(error) })
-                    }catch{}
+                    } catch (error) {
+                        console.log(error)
+                    }
                 }
+
                 function start (client: Whatsapp) {
-                    console.log("Start", client)
-    
                     const botRevGas = axios.create({
                         baseURL: "http://18.231.43.57"
                     })
+
                     try {
-                        console.log(client)
                         client.onAnyMessage(async (message) => {
                             var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
                             if (enable) {
@@ -222,15 +216,13 @@ class Sender {
                                                 "ruleId": 43,
                                                 "isTestMessage": false
                                             }
-                                        },
-                                            { headers: { Token: 7, Id: 19 } }).
-                                            then(async (res) => {
-                                                await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
-    
-    
-                                            }).catch((error) => {
-                                                console.log(error)
-                                            })
+                                        },{ headers: { Token: 7, Id: 19 } })
+                                        .then(async (res) => {
+                                            await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
+                                        })
+                                        .catch((error) => {
+                                            console.log(error)
+                                        })
                                     }
                                 }
                             }
@@ -242,10 +234,10 @@ class Sender {
 
                 const createSession = (id: string) => {
                     try{
-                        create(id, (base64Qr, asciiQR, attempts) => {
+                        create(id, (base64Qr, attempts) => {
+
                             socket.emit("attempts", attempts)
                             var matches = base64Qr.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/) as any, response = {} as any;
-    
                             if (matches.length !== 3) {
                                 return new Error('Invalid input string');
                             }
@@ -265,19 +257,24 @@ class Sender {
                             );
                         }, undefined, { logQR: false }
                         ).then((client) => {
+
                             this.clients.set(client.session, client)
+
                             fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
                                 if (err) throw err;
                             });
-                            console.log(client)
+
                             sqlite.insertDados(client.session, client)
                             socket.emit('message', "CONNECTED")
                             
                             start(client);
-                        }).catch((erro) => { console.log("não foi conectado", erro); });
 
-                    }catch{
+                        }).catch((erro) => { 
+                            console.log("não foi conectado", erro); 
+                        });
 
+                    } catch (error) {
+                        console.log(error)
                     }
                     //create(id, qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
                 }
