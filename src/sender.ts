@@ -65,6 +65,7 @@ class Sender {
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
         const client = this.clients.get(session) as Whatsapp
+        console.log(client)
         let messagesAll = await client.getAllMessagesInChat(phoneNumber, false, true);
 
         var mensagens: message[] = []

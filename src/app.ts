@@ -94,8 +94,8 @@ app.post("/menu", async (req: Request, res: Response) => {
         if (!apiKey || apiKey !== process.env.API_KEY) {
             res.status(401).json({ error: 'unauthorised' })
         } else {
-            const { sesseion, number, title, subTitle, description, buttonText, listMenu } = req.body
-            await sender.sendListMenu(sesseion, number, title, subTitle, description, buttonText, listMenu)
+            const { session, number, title, subTitle, description, buttonText, listMenu } = req.body
+            await sender.sendListMenu(session, number, title, subTitle, description, buttonText, listMenu)
 
             return res.status(200).json({ success: "Message sent successfully" })
         }
@@ -106,14 +106,14 @@ app.post("/menu", async (req: Request, res: Response) => {
 })
 
 
-app.get("/get-messages", async (req: Request, res: Response) => {
+app.post("/get-messages", async (req: Request, res: Response) => {
     try {
         const apiKey = req.get('Authorization')
         if (!apiKey || apiKey !== process.env.API_KEY) {
             res.status(401).json({ error: 'unauthorised' })
         } else {
-            const {session ,number} = req.body
-            const getMessages = await sender.getMessages(session, number)
+            const {number, session} = req.body
+            const getMessages = await sender.getMessages(number, session)
             return res.status(200).json(getMessages)
         }
 
