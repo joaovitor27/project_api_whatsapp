@@ -12,34 +12,20 @@ module.exports = {
   },
   crateTable: async function(callback:any){
     var db = await this.openDb()
-    await db.exec('CREATE TABLE clients (session TEXT, cliente TEXT)')
+    try{
+      await db.exec('CREATE TABLE IF NOT EXISTS clients (session TEXT UNIQUE)')
+    }catch{}
   },
   insertDados: async function(session: any, client: any, callback:any){
     var db = await this.openDb()
-    console.log("teste/; ",client)
-    const getCircularReplacer = () => {
-      const seen = new WeakSet();
-      return (_key: any, value: object | null) => {
-        if (typeof value === 'object' && value !== null) {
-          if (seen.has(value)) {
-            return;
-          }
-          seen.add(value);
-        }
-        return value;
-      };
-    };
-    var clientjson = JSON.stringify(client, getCircularReplacer())
-    await db.run('INSERT INTO clients(sessionclient, client) VALUES ($session, $client)', {
-      $session:session,
-      $client:clientjson
+
+    await db.run('INSERT INTO clients(session) VALUES ($session)', {
+      $session:session
     })
   },
-  getClient: async function(session:String){
-    console.log(session)
+  getClients: async function(){
     var db = await this.openDb()
-    const result = await db.get("SELECT client FROM clients WHERE sessionclient = $sessionclient", {$sessionclient:session}) 
-    var json = JSON.parse(result.client)
-    return json
+    const result = await db.all("SELECT session FROM clients")
+    return result
   }
 };

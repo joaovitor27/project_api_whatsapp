@@ -163,13 +163,11 @@ class Sender {
         }
     }
 
-    private initialize() {
-
-        
+    private async initialize() {
 
         const app = express()
         const server = http.createServer(app);
-        const io = require("socket.io")(server, { cors: { origin: "http://localhost:3000", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
+        const io = require("socket.io")(server, { cors: { origin: "http://3.92.199.163:3000", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
         
         try {
             app.set("view engine", "ejs")
@@ -185,15 +183,13 @@ class Sender {
 
             app.use(express.static(__dirname + "/static"));
             server.listen(3000, () => { })
-
-
-            //create("revgas")
+            sqlite.crateTable()
             
             io.on("connection", async (socket: {[x: string]: any; id: string;}) => {
 
                 function start (client: Whatsapp) {
                     console.log("Start", client)
-
+    
                     const botRevGas = axios.create({
                         baseURL: "http://18.231.43.57"
                     })
@@ -229,7 +225,6 @@ class Sender {
                                     }
                                 }
                             }
-    
                         })
     
                     } catch (error) {
@@ -267,12 +262,10 @@ class Sender {
                                 if (err) throw err;
                             });
                             console.log(client)
-                            //sqlite.insertDados(client.session, client)
-                            client.onStateChange((state) => {
-                                socket.emit('message', "status" + state)
-                                console.log("state changed:", state)
-                            })
-                            start(client); 
+                            sqlite.insertDados(client.session, client)
+                            socket.emit('message', "CONNECTED")
+                            
+                            start(client);
                         }).catch((erro) => { console.log("não foi conectado", erro); });
 
                     }catch{

@@ -1,4 +1,4 @@
-const socket = io("http://localhost:3000");
+const socket = io("http://3.92.199.163:3000");
 
 if (localStorage.getItem('session') == null){
     document.getElementById('activatedBot').style.display = 'none';
