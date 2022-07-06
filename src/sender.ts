@@ -167,7 +167,7 @@ class Sender {
 
         const app = express()
         const server = http.createServer(app);
-        const io = require("socket.io")(server, { cors: { origin: "http://3.92.199.163:3000", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
+        const io = require("socket.io")(server, { cors: { origin: "http://3.92.199.163", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
         
         try {
             app.set("view engine", "ejs")
