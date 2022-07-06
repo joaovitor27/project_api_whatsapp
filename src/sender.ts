@@ -189,15 +189,15 @@ class Sender {
             //create("revgas")
             
             io.on("connection", async (socket: {[x: string]: any; id: string;}) => {
-                const start = (client: Whatsapp) => {
-                    client.onStateChange((state) => {
-                        socket.emit('message', "status" + state)
-                        console.log("state changed:", state)
-                    })
+
+                function start (client: Whatsapp) {
+                    console.log("Start", client)
+
                     const botRevGas = axios.create({
                         baseURL: "http://18.231.43.57"
                     })
                     try {
+                        console.log(client)
                         client.onAnyMessage(async (message) => {
                             var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
                             if (enable) {
@@ -237,45 +237,48 @@ class Sender {
                 }
 
                 const createSession = (id: string) => {
-                    //create(id, qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
-                    create(id, (base64Qr, asciiQR, attempts) => {
-                        socket.emit("attempts", attempts)
-                        var matches = base64Qr.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/) as any, response = {} as any;
-
-                        if (matches.length !== 3) {
-                            return new Error('Invalid input string');
-                        }
-
-                        response.type = matches[1];
-                        response.data = Buffer.from(matches[2], 'base64');
-                        var imageBuffer = response;
-                        require('fs').writeFile(
-                            './src/static/QRcodes/' + id + ".png",
-                            imageBuffer['data'],
-                            'binary',
-                            function (err: null) {
-                                if (err != null) {
-                                    console.log(err);
-                                }
+                    try{
+                        create(id, (base64Qr, asciiQR, attempts) => {
+                            socket.emit("attempts", attempts)
+                            var matches = base64Qr.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/) as any, response = {} as any;
+    
+                            if (matches.length !== 3) {
+                                return new Error('Invalid input string');
                             }
-                        );
-                    }, undefined, { logQR: false }
-                    ).then((client) => {
-                        this.clients.set(client.session, client)
-                        fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
-                            if (err) throw err;
-                        });
-                        console.log(client)
-                        //sqlite.insertDados(client.session, client)
-                        start(client); 
-                    }).catch((erro) => { console.log("não foi conectado", erro); });
+    
+                            response.type = matches[1];
+                            response.data = Buffer.from(matches[2], 'base64');
+                            var imageBuffer = response;
+                            require('fs').writeFile(
+                                './src/static/QRcodes/' + id + ".png",
+                                imageBuffer['data'],
+                                'binary',
+                                function (err: null) {
+                                    if (err != null) {
+                                        console.log(err);
+                                    }
+                                }
+                            );
+                        }, undefined, { logQR: false }
+                        ).then((client) => {
+                            this.clients.set(client.session, client)
+                            fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
+                                if (err) throw err;
+                            });
+                            console.log(client)
+                            //sqlite.insertDados(client.session, client)
+                            client.onStateChange((state) => {
+                                socket.emit('message', "status" + state)
+                                console.log("state changed:", state)
+                            })
+                            start(client); 
+                        }).catch((erro) => { console.log("não foi conectado", erro); });
+
+                    }catch{
+
+                    }
+                    //create(id, qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
                 }
-     
-                socket.on("startSession", function(data: string){
-                    create(data).then((client) => {
-                        start(client)
-                    })
-                })
 
                 socket.on("create-session", function (data: { id: string; }) {
                     console.log("create session:", data.id)
@@ -291,9 +294,6 @@ class Sender {
                     socket.emit("statusBot", data.status)
                 })
 
-                if(!(this.clients.size == 0)){
-                    start(this.clients.get("teste") as Whatsapp)
-                }
             })
 
         } catch (error) {

@@ -32,6 +32,7 @@ socket.on('message', (data) => {
     document.getElementById('formulario').style.display = 'none';
     document.getElementById('activatedBot').style.display = 'block';
     localStorage.setItem('statusBot', 'true');
+    location.reload();
 })
 
 if(localStorage.getItem("statusBot") == "false"){
@@ -43,6 +44,17 @@ if(localStorage.getItem("statusBot") == "false"){
 }
 
 socket.emit("startSession", localStorage.getItem("session"))
+
+socket.emit("status", localStorage.getItem("session"))
+socket.on("status", (data) => {
+    if (data == 'CONNECTED'){
+        document.getElementById('activatedBot').style.display = 'none';
+        document.getElementById('formulario').style.display = 'block';
+    }else{
+        document.getElementById('activatedBot').style.display = 'none';
+        document.getElementById('formulario').style.display = 'block';
+    }
+})
 
 socket.on('statusBot', (data) => {
     if(data=='true'){
