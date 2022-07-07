@@ -83,3 +83,8 @@ function activatedBot() {
 
     }
 }
+
+function exitSession() {
+    localStorage.clear();
+    location.reload();
+}

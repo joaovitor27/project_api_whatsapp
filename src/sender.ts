@@ -179,58 +179,68 @@ class Sender {
             app.use(express.static(__dirname + "/static"));
             server.listen(3000, () => { })
             //sqlite.crateTable()
-            io.on("connection", async (socket: {[x: string]: any; id: string;}) => {
-                var clients = await sqlite.getClients()
+            var clients = await sqlite.getClients()
 
-                for(let index = 0; index < clients.length; index++){
-                    var element: any = clients[index];
-                    var session = element["session"]
-                    try{
-                        await create(session).then((client) => { start(client) }).catch((error) => { console.error(error) })
-                    } catch (error) {
-                        console.log(error)
-                    }
-                }
+            for(let index = 0; index < clients.length; index++){
+                var element: any = clients[index];
+                var session = element["session"]
+                try{
+                    await create(session).then((client) => { 
+                        this.clients.set(client.session, client)
 
-                function start (client: Whatsapp) {
-                    const botRevGas = axios.create({
-                        baseURL: "http://18.231.43.57"
+                        fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
+                            if (err) throw err;
+                        });
+
+                        start(client) 
+                    }).catch((error) => {
+                        console.error(error) 
                     })
 
-                    try {
-                        client.onAnyMessage(async (message) => {
-                            var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
-                            if (enable) {
-                                var origen = message["from"] as string
-                                if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
-                                    if (!(origen != message.chatId)) {
-                                        let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
-                                        botRevGas.post("/", {
-                                            "appPackageName": "venom",
-                                            "messengerPackageName": "com.whatsapp",
-                                            "query": {
-                                                "sender": phoneNumber,
-                                                "message": message.body,
-                                                "isGroup": false,
-                                                "groupParticipant": "",
-                                                "ruleId": 43,
-                                                "isTestMessage": false
-                                            }
-                                        },{ headers: { Token: 7, Id: 19 } })
-                                        .then(async (res) => {
-                                            await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
-                                        })
-                                        .catch((error) => {
-                                            console.log(error)
-                                        })
-                                    }
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+            function start (client: Whatsapp) {
+                const botRevGas = axios.create({
+                    baseURL: "http://18.231.43.57"
+                })
+
+                try {
+                    client.onAnyMessage(async (message) => {
+                        var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
+                        if (enable) {
+                            var origen = message["from"] as string
+                            if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
+                                if (!(origen != message.chatId)) {
+                                    let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
+                                    botRevGas.post("/", {
+                                        "appPackageName": "venom",
+                                        "messengerPackageName": "com.whatsapp",
+                                        "query": {
+                                            "sender": phoneNumber,
+                                            "message": message.body,
+                                            "isGroup": false,
+                                            "groupParticipant": "",
+                                            "ruleId": 43,
+                                            "isTestMessage": false
+                                        }
+                                    },{ headers: { Token: 7, Id: 19 } })
+                                    .then(async (res) => {
+                                        await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
+                                    })
+                                    .catch((error) => {
+                                        console.log(error)
+                                    })
                                 }
                             }
-                        })
-                    } catch (error) {
-                        console.log(error)
-                    }
+                        }
+                    })
+                } catch (error) {
+                    console.log(error)
                 }
+            }
+            io.on("connection", async (socket: {[x: string]: any; id: string;}) => {
 
                 const createSession = (id: string) => {
                     try{
@@ -264,9 +274,11 @@ class Sender {
                                 if (err) throw err;
                             });
 
-                            sqlite.insertDados(client.session, client)
+                            try{
+                                sqlite.insertDados(client.session, client)
+                            }catch{}
+
                             socket.emit('message', "CONNECTED")
-                            
                             start(client);
 
                         }).catch((erro) => { 

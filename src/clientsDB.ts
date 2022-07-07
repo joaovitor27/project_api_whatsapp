@@ -21,7 +21,7 @@ module.exports = {
   },
   insertDados: async function(session: any, client: any, callback:any){
     var db = await this.openDb()
-
+    
     await db.run('INSERT INTO clients(session) VALUES ($session)', {
       $session:session
     })
