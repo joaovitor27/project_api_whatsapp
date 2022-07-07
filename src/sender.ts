@@ -247,33 +247,17 @@ class Sender {
                         create(id, (base64Qr, attempts) => {
 
                             socket.emit("attempts", attempts)
-                            var matches = base64Qr.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/) as any, response = {} as any;
-                            if (matches.length !== 3) {
-                                return new Error('Invalid input string');
-                            }
-    
-                            response.type = matches[1];
-                            response.data = Buffer.from(matches[2], 'base64');
-                            var imageBuffer = response;
-                            require('fs').writeFile(
-                                './src/static/QRcodes/' + id + ".png",
-                                imageBuffer['data'],
-                                'binary',
-                                function (err: null) {
-                                    if (err != null) {
-                                        console.log(err);
-                                    }
-                                }
-                            );
+                            socket.on("chamarqr", function (data: string) {
+                                socket.emit("qrcode", base64Qr);
+                            });
+
                         }, undefined, { logQR: false }
                         ).then((client) => {
 
                             this.clients.set(client.session, client)
-
                             fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
                                 if (err) throw err;
                             });
-
                             try{
                                 sqlite.insertDados(client.session, client)
                             }catch{}
@@ -288,23 +272,17 @@ class Sender {
                     } catch (error) {
                         console.log(error)
                     }
-                    //create(id, qr).then((client) => { start(client) }).catch((error) => { console.error(error) })
                 }
 
                 socket.on("create-session", function (data: { id: string; }) {
                     console.log("create session:", data.id)
                     createSession(data.id)
                 });
-                
-                socket.on("chamarqr", function (data: string) {
-                    socket.emit("qrcode","QRcodes/"+ data + ".png");
-                });
 
                 socket.on("activatedBot", function(data: { session: string; status: string | NodeJS.ArrayBufferView; }){
                     fs.writeFileSync("./tokens/" + data.session.toString() + "/enable", data.status.toString())
                     socket.emit("statusBot", data.status)
                 })
-
             })
 
         } catch (error) {

@@ -28,8 +28,8 @@ socket.on('qrcode', (data) => {
     document.getElementById("textID").style.display = "block";
     document.getElementById("textID").innerHTML = "<b>Id da instancia: </b>" + document.getElementById('idInput').value;
     document.getElementById("carregando").style.display = 'none'
-    document.getElementById("img1").src = data + "?" + new Date().getTime()
-    socket.emit('qrcode', "QRcodes/" + mask.unmaskedValue + ".png")
+    document.getElementById("img1").src = data
+    socket.emit('qrcode')
 });
 
 socket.on('message', (data) => {
