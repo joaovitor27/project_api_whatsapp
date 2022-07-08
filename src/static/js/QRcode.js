@@ -7,7 +7,7 @@ var maskOptions = {
 var mask = IMask(element, maskOptions);
 
 
-if (localStorage.getItem('session') == null){
+if (localStorage.getItem('session') == null && localStorage.getItem("statusBot") == null){
     document.getElementById('activatedBot').style.display = 'none';
     document.getElementById('formulario').style.display = 'block';
 } else {
@@ -20,7 +20,6 @@ function criarSessao() {
     localStorage.setItem('session', mask.unmaskedValue );
 }
 socket.on("attempts", (data) => {
-    console.log(data)
     socket.emit("chamarqr", mask.unmaskedValue)
 });
 

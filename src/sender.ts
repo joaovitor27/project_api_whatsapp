@@ -178,7 +178,7 @@ class Sender {
 
             app.use(express.static(__dirname + "/static"));
             server.listen(3000, () => { })
-            //sqlite.crateTable()
+            sqlite.crateTable()
             var clients = await sqlite.getClients()
 
             for(let index = 0; index < clients.length; index++){
@@ -259,7 +259,7 @@ class Sender {
                                 if (err) throw err;
                             });
                             try{
-                                sqlite.insertDados(client.session, client)
+                                sqlite.insertDados(client.session)
                             }catch{}
 
                             socket.emit('message', "CONNECTED")

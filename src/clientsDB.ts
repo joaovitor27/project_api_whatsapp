@@ -13,13 +13,10 @@ module.exports = {
   crateTable: async function(callback:any){
     var db = await this.openDb()
     try{
-      await db.exec('CREATE TABLE IF NOT EXISTS clients (session TEXT UNIQUE PRIMARY KEY)')
-      await db.exec('CREATE TABLE IF NOT EXISTS resales (ownersession INTEGER,establishment INTEGER,' + 
-                    'sessionResales TEXT, FOREIGN KEY(sessionResales) REFERENCES clients(session))')
-
+      await db.exec('CREATE TABLE IF NOT EXISTS clients (idCliente INTEGER PRIMARY KEY AUTOINCREMENT, session TEXT UNIQUE, ownerClient INTEGER UNIQUE NULL, establishment INTEGER UNIQUE NULL)')
     }catch{}
   },
-  insertDados: async function(session: any, client: any, callback:any){
+  insertDados: async function(session: any){
     var db = await this.openDb()
     
     await db.run('INSERT INTO clients(session) VALUES ($session)', {
