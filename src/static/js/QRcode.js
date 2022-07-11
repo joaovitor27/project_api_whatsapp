@@ -7,7 +7,7 @@ var maskOptions = {
 var mask = IMask(element, maskOptions);
 
 
-if (localStorage.getItem('session') == null && localStorage.getItem("statusBot") == null){
+if ((localStorage.getItem('session') == null) && (localStorage.getItem("statusBot") == null)){
     document.getElementById('activatedBot').style.display = 'none';
     document.getElementById('formulario').style.display = 'block';
 } else {

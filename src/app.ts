@@ -71,6 +71,25 @@ app.post("/bot-enable", async (req: Request, res: Response) => {
 })
 
 
+app.post("/update-session", async (req: Request, res: Response) => {
+    try {
+        const apiKey = req.get('Authorization')
+        if (!apiKey || apiKey !== process.env.API_KEY) {
+            res.status(401).json({ error: 'unauthorised' })
+        } else {
+            const { session, owner, establishment } = req.body
+            await sender.updateSession(session, owner, establishment)
+
+            return res.status(200).json({ success: "Session updated" })
+
+        }
+    } catch (error) {
+        console.error("error", error)
+        res.status(500).json({ status: "error", message: error })
+    }
+})
+
+
 app.post("/menu", async (req: Request, res: Response) => {
     try {
         const apiKey = req.get('Authorization')

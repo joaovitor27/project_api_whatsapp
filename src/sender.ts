@@ -153,6 +153,11 @@ class Sender {
     }
 
 
+    async updateSession(session: any, owner: any, establishment: any) {
+        sqlite.updateSession(session, owner, establishment)
+    }
+
+
     async activated(session: any, enable: any) {
         if (!enable) {
             fs.writeFileSync("./tokens/" + session + "/enable", "false");
@@ -180,35 +185,43 @@ class Sender {
             sqlite.crateTable()
             var clients = await sqlite.getClients()
 
-            for (let index = 0; index < clients.length; index++) {
-                var element: any = clients[index];
-                var session = element["session"]
-                try {
-                    await create(session).then((client) => {
-                        this.clients.set(client.session, client)
+            if (clients.length != null){
+                for (let index = 0; index < clients.length; index++) {
+                    var element: any = clients[index];
+                    var session = element["session"]
+                    try {
+                        await create(session).then((client) => {
+                            this.clients.set(client.session, client)
 
-                        fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
-                            if (err) throw err;
-                        });
+                            fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
+                                if (err) throw err;
+                            });
 
-                        start(client)
-                    }).catch((error) => {
-                        console.error(error)
-                    })
+                            start(client)
+                        }).catch((error) => {
+                            console.error(error)
+                        })
 
-                } catch (error) {
-                    console.log(error)
+                    } catch (error) {
+                        console.log(error)
+                    }
                 }
             }
-            function start(client: Whatsapp) {
+            async function start(client: Whatsapp) {
                 const botRevGas = axios.create({
-                    baseURL: "http://18.231.43.57"
+                    baseURL: "http://localhost:6000"
                 })
 
                 try {
+                    const dataEstablishment = await sqlite.getClient(client.session)
+
                     client.onAnyMessage(async (message) => {
+                        const owner = dataEstablishment["ownerClient"]
+                        const establishment = dataEstablishment["establishment"]
+
                         var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
-                        if (enable) {
+                        if (enable && owner != undefined && establishment != undefined) {
+                            console.log("passou")
                             var origen = message["from"] as string
                             if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
                                 if (!(origen != message.chatId)) {
@@ -222,9 +235,10 @@ class Sender {
                                             "isGroup": false,
                                             "groupParticipant": "",
                                             "ruleId": 43,
-                                            "isTestMessage": false
+                                            "isTestMessage": false,
+                                            "session": client.session
                                         }
-                                    }, { headers: { Token: 7, Id: 19 } })
+                                    }, { headers: { Token: owner, Id: establishment } })
                                         .then(async (res) => {
                                             await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
                                         })
@@ -241,12 +255,7 @@ class Sender {
             }
             io.on("connection", async (socket: { [x: string]: any; id: string; }) => {
                 const createSession = async (id: string) => {
-                    const client = this.clients.get(id) as Whatsapp
-                    const state = await client.isConnected();
-                    console.log(state)
-                    if (state == true) {
-                        socket.emit('message', "CONNECTED")
-                    }else{
+
                         try {
                             create(id, (base64Qr, attempts) => {
                                 socket.emit("attempts", attempts)
@@ -272,7 +281,7 @@ class Sender {
                         } catch (error) {
                             console.log(error)
                         }
-                    }
+                    
                 }
 
                 socket.on("create-session", function (data: { id: string; }) {
