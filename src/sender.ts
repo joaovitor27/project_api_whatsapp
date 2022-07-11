@@ -4,7 +4,6 @@ import axios from "axios";
 import http from 'http';
 import express, { Request, Response } from "express"
 import fs from "fs"
-import { Buffer } from 'buffer';
 
 var sqlite = require("./clientsDB");
 
@@ -135,7 +134,7 @@ class Sender {
     }
 
 
-    async sendListMenu(session:string ,number: string, title: string, subTitle: string, description: string, buttonText: string, listMenu: []) {
+    async sendListMenu(session: string, number: string, title: string, subTitle: string, description: string, buttonText: string, listMenu: []) {
         if (!isValidPhoneNumber(number, "BR")) {
             throw new Error("Invalid number!")
         }
@@ -168,7 +167,7 @@ class Sender {
         const app = express()
         const server = http.createServer(app);
         const io = require("socket.io")(server, { cors: { origin: "http://localhost:3000", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
-        
+
         try {
             app.set("view engine", "ejs")
 
@@ -181,27 +180,27 @@ class Sender {
             sqlite.crateTable()
             var clients = await sqlite.getClients()
 
-            for(let index = 0; index < clients.length; index++){
+            for (let index = 0; index < clients.length; index++) {
                 var element: any = clients[index];
                 var session = element["session"]
-                try{
-                    await create(session).then((client) => { 
+                try {
+                    await create(session).then((client) => {
                         this.clients.set(client.session, client)
 
                         fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
                             if (err) throw err;
                         });
 
-                        start(client) 
+                        start(client)
                     }).catch((error) => {
-                        console.error(error) 
+                        console.error(error)
                     })
 
                 } catch (error) {
                     console.log(error)
                 }
             }
-            function start (client: Whatsapp) {
+            function start(client: Whatsapp) {
                 const botRevGas = axios.create({
                     baseURL: "http://18.231.43.57"
                 })
@@ -225,13 +224,13 @@ class Sender {
                                             "ruleId": 43,
                                             "isTestMessage": false
                                         }
-                                    },{ headers: { Token: 7, Id: 19 } })
-                                    .then(async (res) => {
-                                        await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
-                                    })
-                                    .catch((error) => {
-                                        console.log(error)
-                                    })
+                                    }, { headers: { Token: 7, Id: 19 } })
+                                        .then(async (res) => {
+                                            await client.sendText(message.from as string, res.data["replies"][0]["message"] as string)
+                                        })
+                                        .catch((error) => {
+                                            console.log(error)
+                                        })
                                 }
                             }
                         }
@@ -240,48 +239,55 @@ class Sender {
                     console.log(error)
                 }
             }
-            io.on("connection", async (socket: {[x: string]: any; id: string;}) => {
-
-                const createSession = (id: string) => {
-                    try{
-                        create(id, (base64Qr, attempts) => {
-
-                            socket.emit("attempts", attempts)
-                            socket.on("chamarqr", function (data: string) {
-                                socket.emit("qrcode", base64Qr);
+            io.on("connection", async (socket: { [x: string]: any; id: string; }) => {
+                const createSession = async (id: string) => {
+                    const client = this.clients.get(id) as Whatsapp
+                    const state = await client.isConnected();
+                    console.log(state)
+                    if (state == true) {
+                        socket.emit('message', "CONNECTED")
+                    }else{
+                        try {
+                            create(id, (base64Qr, attempts) => {
+                                socket.emit("attempts", attempts)
+                                socket.on("chamarqr", function (data: string) {
+                                    socket.emit("qrcode", base64Qr);
+                                });
+                            }, undefined, { logQR: false }
+                            ).then((client) => {
+                                this.clients.set(client.session, client)
+                                fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
+                                    if (err) throw err;
+                                });
+                                try {
+                                    sqlite.insertDados(client.session)
+                                } catch {}
+    
+                                socket.emit('message', "CONNECTED")
+                                start(client);
+    
+                            }).catch((erro) => {
+                                console.log("não foi conectado", erro);
                             });
-
-                        }, undefined, { logQR: false }
-                        ).then((client) => {
-
-                            this.clients.set(client.session, client)
-                            fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
-                                if (err) throw err;
-                            });
-                            try{
-                                sqlite.insertDados(client.session)
-                            }catch{}
-
-                            socket.emit('message', "CONNECTED")
-                            start(client);
-
-                        }).catch((erro) => { 
-                            console.log("não foi conectado", erro); 
-                        });
-
-                    } catch (error) {
-                        console.log(error)
+                        } catch (error) {
+                            console.log(error)
+                        }
                     }
                 }
 
                 socket.on("create-session", function (data: { id: string; }) {
-                    console.log("create session:", data.id)
                     createSession(data.id)
                 });
 
-                socket.on("activatedBot", function(data: { session: string; status: string | NodeJS.ArrayBufferView; }){
+                socket.on("activatedBot", function (data: { session: string; status: string | NodeJS.ArrayBufferView; }) {
                     fs.writeFileSync("./tokens/" + data.session.toString() + "/enable", data.status.toString())
                     socket.emit("statusBot", data.status)
+                })
+                var clients = this.clients
+                socket.on("exit", function (data: any) {
+                    const client = clients.get(data) as Whatsapp
+                    client.close()
+                    clients.delete(data)
                 })
             })
 

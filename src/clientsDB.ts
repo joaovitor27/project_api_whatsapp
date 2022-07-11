@@ -25,7 +25,10 @@ module.exports = {
   },
   getClients: async function(){
     var db = await this.openDb()
-    const result = await db.all("SELECT session FROM clients")
-    return result
+    try{
+      const result = await db.all("SELECT session FROM clients")
+      return result
+    }catch{}
+    return null
   }
 };
