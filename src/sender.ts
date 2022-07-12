@@ -306,11 +306,6 @@ class Sender {
                     fs.writeFileSync("./tokens/" + data.session.toString() + "/enable", data.status.toString())
                     socket.emit("statusBot", data.status)
                 })
-                var clients = this.clients
-                socket.on("exit", function (data: any) {
-                    const client = clients.get(data) as Whatsapp
-                    clients.delete(data)
-                })
             })
 
         } catch (error) {

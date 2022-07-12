@@ -84,7 +84,6 @@ function activatedBot() {
 }
 
 function exitSession() {
-    socket.emit("exit", localStorage.getItem("session"))
     localStorage.clear();
     location.reload();
 }
