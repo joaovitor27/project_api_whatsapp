@@ -40,11 +40,15 @@ module.exports = {
   },
   updateSession: async function (session: any, owner: any, establishment: any) {
     var db = await this.openDb()
-    const result = await db.get("UPDATE clients SET ownerClient = $owner, establishment = $establishment WHERE session = $session", {
-      $session:session,
-      $establishment: establishment,
-      $owner: owner
-    })
-    return result
+    try{
+      const result = await db.get("UPDATE clients SET ownerClient = $owner, establishment = $establishment WHERE session = $session", {
+        $session:session,
+        $establishment: establishment,
+        $owner: owner
+      })
+      return result
+    }catch (e){
+      return e
+    }
   }
 };
