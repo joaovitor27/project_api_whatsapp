@@ -64,20 +64,25 @@ socket.on("status", (data) => {
 
 socket.on('statusBot', (data) => {
     if(data=='true'){
+        localStorage.setItem('statusBot', 'true');
         document.getElementById("activated").innerHTML = "Desligar"
         document.getElementById("statusBot").innerHTML = "O bot está: Ligado"
     }else{
+        localStorage.setItem('statusBot', 'false');
         document.getElementById("activated").innerHTML = "Ligar"
         document.getElementById("statusBot").innerHTML = "O bot está: Desligado"
     }
+    socket.emit('statusBot', mask.unmaskedValue)
 })
 
 function activatedBot() {
     if (localStorage.getItem('statusBot') == 'true'){
         localStorage.setItem('statusBot', 'false');
+        location.reload();
         socket.emit('activatedBot', { status:'false', session: localStorage.getItem("session") })
     }else{
         localStorage.setItem('statusBot', 'true');
+        location.reload();
         socket.emit('activatedBot', { status:'true', session: localStorage.getItem("session") })
 
     }

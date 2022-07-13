@@ -183,35 +183,34 @@ class Sender {
             app.use(express.static(__dirname + "/static"));
             server.listen(3000, () => { })
             sqlite.crateTable()
-//            var clients = await sqlite.getClients()
+            var clients = await sqlite.getClients()
 
-//            if (clients.length != null){
-//                for (let index = 0; index < clients.length; index++) {
-//                    var element: any = clients[index];
-//                    var session = element["session"]
-//                    try {
-//                        await create(session).then((client) => {
-//                            this.clients.set(client.session, client)
-//
-//                            fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
-//                                if (err) throw err;
-//                            });
-//
-//                            start(client)
-//                        }).catch((error) => {
-//                            console.error(error)
-//                        })
-//
-//                    } catch (error) {
-//                        console.log(error)
-//                    }
-//                }
-//            }
+            if (clients.length != null){
+                for (let index = 0; index < clients.length; index++) {
+                    var element: any = clients[index];
+                    var session = element["session"]
+                    try {
+                        await create(session).then((client) => {
+                            this.clients.set(client.session, client)
+
+                            fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
+                                if (err) throw err;
+                            });
+
+                            start(client)
+                        }).catch((error) => {
+                            console.error(error)
+                        })
+
+                    } catch (error) {
+                        console.log(error)
+                    }
+                }
+            }
             function start(client: Whatsapp) {
                 const botRevGas = axios.create({
                     baseURL: "http://18.231.43.57"
                 })
-
                 try {
                     client.onAnyMessage(async (message) => {
 
@@ -248,7 +247,7 @@ class Sender {
                                             if (message1.includes("Não entendi") || message1.includes("não entendi")){
                                                     try{
                                                     fs.writeFileSync("./tokens/" + client.session + "/enable", "false")
-                                                    await client.sendText("558681630617@c.us", "Bot não entendeu na revenda: " + client.session)
+                                                    await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session)
                                                     }catch(erro){
                                                         console.log(erro)
                                                     }
@@ -267,9 +266,11 @@ class Sender {
                     console.log(error)
                 }
             }
-            io.on("connection", async (socket: { [x: string]: any; id: string; }) => {
-                const createSession = async (id: string) => {
 
+            io.on("connection", (socket: { [x: string]: any; id: string; }) => {
+                const clients = this.clients
+                async function createSession (id: string) {
+                    if (clients.size == 0){
                         try {
                             create(id, (base64Qr, attempts) => {
                                 socket.emit("attempts", attempts)
@@ -278,7 +279,7 @@ class Sender {
                                 });
                             }, undefined, { logQR: false }
                             ).then((client) => {
-                                this.clients.set(client.session, client)
+                                clients.set(client.session, client)
                                 fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
                                     if (err) throw err;
                                 });
@@ -295,7 +296,42 @@ class Sender {
                         } catch (error) {
                             console.log(error)
                         }
-                    
+
+                    }else{
+                        console.log("Entrou aqui")
+                        const client = clients.get(id) as Whatsapp
+                        var state = await client.getConnectionState()
+                        
+                        if(state == "CONNECTED"){
+                            socket.emit('message', "CONNECTED")
+                        }else{
+                            try {
+                                create(id, (base64Qr, attempts) => {
+                                    socket.emit("attempts", attempts)
+                                    socket.on("chamarqr", function (data: string) {
+                                        socket.emit("qrcode", base64Qr);
+                                    });
+                                }, undefined, { logQR: false }
+                                ).then((client) => {
+                                    clients.set(client.session, client)
+                                    fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
+                                        if (err) throw err;
+                                    });
+                                    try {
+                                        sqlite.insertDados(client.session)
+                                    } catch {}
+        
+                                    socket.emit('message', "CONNECTED")
+                                    start(client);
+        
+                                }).catch((erro) => {
+                                    console.log("não foi conectado", erro);
+                                });
+                            } catch (error) {
+                                console.log(error)
+                            }
+                        }  
+                    }
                 }
 
                 socket.on("create-session", function (data: { id: string; }) {
@@ -304,7 +340,10 @@ class Sender {
 
                 socket.on("activatedBot", function (data: { session: string; status: string | NodeJS.ArrayBufferView; }) {
                     fs.writeFileSync("./tokens/" + data.session.toString() + "/enable", data.status.toString())
-                    socket.emit("statusBot", data.status)
+                })
+                socket.on("statusBot", function (data: string){
+                    var stateBot = fs.readFileSync("./tokens/" + data + "/enable").toString()
+                    socket.emit("statusBot", stateBot)
                 })
             })
 

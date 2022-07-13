@@ -18,10 +18,11 @@ module.exports = {
   },
   insertDados: async function(session: any){
     var db = await this.openDb()
-    
-    await db.run('INSERT INTO clients(session) VALUES ($session)', {
-      $session:session
-    })
+    try{
+      await db.run('INSERT INTO clients(session) VALUES ($session)', {
+        $session:session
+      })
+    }catch{}
   },
   getClients: async function(){
     var db = await this.openDb()
