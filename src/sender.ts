@@ -243,11 +243,11 @@ class Sender {
                                     }, { headers: { Token: owner, Id: establishment } })
                                         .then(async (res) => {
                                             var message1 = res.data["replies"][0]["message"]
-                                            console.log(message1)
-                                            if (message1.includes("Não entendi") || message1.includes("não entendi")){
+
+                                            if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos")){
                                                     try{
                                                     fs.writeFileSync("./tokens/" + client.session + "/enable", "false")
-                                                    await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session)
+                                                    await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumber)
                                                     }catch(erro){
                                                         console.log(erro)
                                                     }
