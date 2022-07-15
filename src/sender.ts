@@ -227,37 +227,36 @@ class Sender {
                             var origen = message["from"] as string
                             if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
                                 if (!(origen != message.chatId)) {
+                                    console.log("Menssagem: ", message)
                                     let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
                                     botRevGas.post("/", {
                                         "appPackageName": "venom",
                                         "messengerPackageName": "com.whatsapp",
                                         "query": {
+                                            "session": client.session,
+                                            "type": message["type"],
                                             "sender": phoneNumber,
-                                            "message": message.body,
-                                            "isGroup": false,
-                                            "groupParticipant": "",
-                                            "ruleId": 43,
-                                            "isTestMessage": false,
-                                            "session": client.session
+                                            "message": message.body
                                         }
-                                    }, { headers: { Token: owner, Id: establishment } })
-                                        .then(async (res) => {
-                                            var message1 = res.data["replies"][0]["message"]
-
-                                            if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos")){
-                                                    try{
-                                                    fs.writeFileSync("./tokens/" + client.session + "/enable", "false")
-                                                    await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumber)
-                                                    }catch(erro){
-                                                        console.log(erro)
-                                                    }
-                                            }else{
-                                                await client.sendText(message.from as string, message1 as string)
-                                            }
-                                        })
-                                        .catch((error) => {
-                                            console.log(error)
-                                        })
+                                    }, 
+                                    { headers: { Token: owner, Id: establishment } })
+                                    .then(async (res) => {
+                                    var message1 = res.data["replies"][0]["message"]
+    
+                                    if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos")){
+                                        try{
+                                            fs.writeFileSync("./tokens/" + client.session + "/enable", "false")
+                                            await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumber)
+                                        }catch(erro){
+                                            console.log(erro)
+                                        }
+                                    }else{
+                                        await client.sendText(message.from as string, message1 as string)
+                                    }
+                                    })
+                                    .catch((error) => {
+                                        console.log(error)
+                                    })
                                 }
                             }
                         }
