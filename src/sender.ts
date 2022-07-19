@@ -1,5 +1,5 @@
 import parsePhoneNumber, { isValidPhoneNumber } from "libphonenumber-js";
-import { create, Whatsapp } from "venom-bot";
+import { create, SocketState, Whatsapp } from "venom-bot";
 import axios from "axios";
 import http from 'http';
 import express, { Request, Response } from "express"
@@ -133,7 +133,6 @@ class Sender {
         return mensagens
     }
 
-
     async sendListMenu(session: string, number: string, title: string, subTitle: string, description: string, buttonText: string, listMenu: []) {
         if (!isValidPhoneNumber(number, "BR")) {
             throw new Error("Invalid number!")
@@ -149,14 +148,11 @@ class Sender {
             .catch((erro: any) => {
                 console.error('Error when sending: ', erro);
             });
-
     }
-
 
     async updateSession(session: any, owner: any, establishment: any) {
         sqlite.updateSession(session, owner, establishment)
     }
-
 
     async activated(session: any, enable: any) {
         if (!enable) {
@@ -166,16 +162,14 @@ class Sender {
         }
     }
 
-
     private async initialize() {
 
         const app = express()
         const server = http.createServer(app);
-        const io = require("socket.io")(server, { cors: { origin: "http://3.92.199.163", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
+        const io = require("socket.io")(server, { cors: { origin: "http://localhost:3000", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
 
         try {
             app.set("view engine", "ejs")
-
             app.get("/home", (req: Request, res: Response) => {
                 res.render('home.ejs')
             })
@@ -184,29 +178,26 @@ class Sender {
             server.listen(3000, () => { })
             sqlite.crateTable()
             var clients = await sqlite.getClients()
-
-            if (clients.length != null){
+            if (clients != null){
                 for (let index = 0; index < clients.length; index++) {
                     var element: any = clients[index];
                     var session = element["session"]
                     try {
                         await create(session).then((client) => {
                             this.clients.set(client.session, client)
-
                             fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
                                 if (err) throw err;
                             });
-
                             start(client)
                         }).catch((error) => {
                             console.error(error)
                         })
-
                     } catch (error) {
                         console.log(error)
                     }
                 }
             }
+
             function start(client: Whatsapp) {
                 const botRevGas = axios.create({
                     baseURL: "http://18.231.43.57"
@@ -215,15 +206,11 @@ class Sender {
                     client.onAnyMessage(async (message) => {
 
                         const dataEstablishment = await sqlite.getClient(client.session)
-                        console.log(dataEstablishment)
                         const owner = dataEstablishment["ownerClient"]
                         const establishment = dataEstablishment["establishment"]
-
-                        console.log(fs.readFileSync("./tokens/" + client.session + "/enable").toString())
                         var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
-                        console.log('enable', enable)
+                        
                         if (enable && owner != undefined && establishment != undefined) {
-                            console.log("passou")
                             var origen = message["from"] as string
                             if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
                                 if (!(origen != message.chatId)) {
@@ -299,7 +286,11 @@ class Sender {
                     }else{
                         console.log("Entrou aqui")
                         const client = clients.get(id) as Whatsapp
-                        var state = await client.getConnectionState()
+                        try{
+                            var state = await client.getConnectionState()
+                        }catch{
+                            var state = "" as SocketState
+                        }
                         
                         if(state == "CONNECTED"){
                             socket.emit('message', "CONNECTED")
@@ -349,9 +340,7 @@ class Sender {
         } catch (error) {
             console.log(error)
         }
-
     }
 }
 
 export default Sender
-

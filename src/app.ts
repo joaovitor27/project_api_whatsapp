@@ -3,7 +3,6 @@ import express, { Request, Response } from "express"
 import Sender from "./sender";
 import * as dotenv from 'dotenv';
 
-
 const sender = new Sender()
 
 const app = express()
@@ -12,26 +11,6 @@ dotenv.config();
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.set("view engine", "ejs")
-
-
-app.get("/api/status", (req: Request, res: Response) => {
-    try {
-        const apiKey = req.get('Authorization')
-        if (!apiKey || apiKey !== process.env.API_KEY) {
-            res.status(401).json({ error: 'unauthorised' })
-        } else {
-            return res.status(200).json({
-                qr_code: sender.qrCode,
-                connected: sender.isConnected
-            })
-        }
-    } catch (error) {
-        console.error("error", error)
-        res.status(500).json({ status: "error", message: error })
-    }
-
-})
-
 
 app.post("/api/message", async (req: Request, res: Response) => {
     try {
@@ -48,7 +27,6 @@ app.post("/api/message", async (req: Request, res: Response) => {
         res.status(500).json({ status: "error", message: error })
     }
 })
-
 
 app.post("/api/bot-enable", async (req: Request, res: Response) => {
     try {
@@ -69,7 +47,6 @@ app.post("/api/bot-enable", async (req: Request, res: Response) => {
         res.status(500).json({ status: "error", message: error })
     }
 })
-
 
 app.post("/api/update-session", async (req: Request, res: Response) => {
     try {
@@ -92,7 +69,6 @@ app.post("/api/update-session", async (req: Request, res: Response) => {
     }
 })
 
-
 app.post("/api/menu", async (req: Request, res: Response) => {
     try {
         const apiKey = req.get('Authorization')
@@ -110,7 +86,6 @@ app.post("/api/menu", async (req: Request, res: Response) => {
     }
 })
 
-
 app.post("/api/get-messages", async (req: Request, res: Response) => {
     try {
         const apiKey = req.get('Authorization')
@@ -127,6 +102,5 @@ app.post("/api/get-messages", async (req: Request, res: Response) => {
         res.status(500).json({ status: "error", message: error })
     }
 })
-
 
 app.listen(5000, () => {})
