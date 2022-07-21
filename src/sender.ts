@@ -4,7 +4,9 @@ import axios from "axios";
 import http from 'http';
 import express, { Request, Response } from "express"
 import fs from "fs"
+import * as dotenv from 'dotenv';
 
+dotenv.config();
 var sqlite = require("./clientsDB");
 
 
@@ -166,7 +168,7 @@ class Sender {
 
         const app = express()
         const server = http.createServer(app);
-        const io = require("socket.io")(server, { cors: { origin: "http://localhost:3000", methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
+        const io = require("socket.io")(server, { cors: { origin: "http://" + process.env.IO_ORIGIN, methods: ["GET", "POST"], transports: ['websocket', 'polling'], credentials: true }, allowEIO3: true })
 
         try {
             app.set("view engine", "ejs")
@@ -185,7 +187,7 @@ class Sender {
                     try {
                         await create(session).then((client) => {
                             this.clients.set(client.session, client)
-                            fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
+                            fs.writeFile("./tokens/" + client.session + "/enable", "false", (err) => {
                                 if (err) throw err;
                             });
                             start(client)
@@ -200,7 +202,7 @@ class Sender {
 
             function start(client: Whatsapp) {
                 const botRevGas = axios.create({
-                    baseURL: "http://18.231.43.57"
+                    baseURL: "http://" + process.env.BASE_URL
                 })
                 try {
                     client.onAnyMessage(async (message) => {
