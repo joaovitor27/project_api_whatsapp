@@ -164,6 +164,14 @@ class Sender {
         }
     }
 
+    async blackListAdd(number: any, session: any) {
+        fs.writeFileSync("./tokens/" + session + "/number-enable/" + number, "");
+    }
+
+    async blackListRemove(number: any, session: any) {
+        fs.rmSync("./tokens/" + session + "/number-enable/" + number);
+    }
+
     private async initialize() {
 
         const app = express()
@@ -180,7 +188,7 @@ class Sender {
             server.listen(3000, () => { })
             sqlite.crateTable()
             var clients = await sqlite.getClients()
-            if (clients != null){
+            if (clients != null) {
                 for (let index = 0; index < clients.length; index++) {
                     var element: any = clients[index];
                     var session = element["session"]
@@ -190,13 +198,14 @@ class Sender {
                             fs.writeFile("./tokens/" + client.session + "/enable", "false", (err) => {
                                 if (err) throw err;
                             });
-                            const path = "tokens/"+ client.session + "/number-enable";
+                            const path = "tokens/" + client.session + "/number-enable";
                             fs.access(path, (error) => {
                                 if (error) {
-                                    fs.mkdir(path, { recursive: true },(error) => {
-                                    if (error) {
-                                        console.log(error);
-                                    }});
+                                    fs.mkdir(path, { recursive: true }, (error) => {
+                                        if (error) {
+                                            console.log(error);
+                                        }
+                                    });
                                 }
                             });
                             start(client)
@@ -219,15 +228,15 @@ class Sender {
                         const owner = dataEstablishment["ownerClient"]
                         const establishment = dataEstablishment["establishment"]
                         var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
-                        
+
                         if (enable && owner != undefined && establishment != undefined) {
                             var origen = message["from"] as string
                             if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
                                 if (!(origen != message.chatId)) {
                                     var phoneNumber = parsePhoneNumber(origen, "BR")?.format("E.164")?.replace("@c.us", "") as string
-                                    var path = ".tokens/"+ client.session + "/number-enable/" + phoneNumber;
+                                    var path = ".tokens/" + client.session + "/number-enable/" + phoneNumber;
                                     fs.access(path, (error) => {
-                                        if (error) {                                            
+                                        if (error) {
                                             botRevGas.post("/", {
                                                 "appPackageName": "venom",
                                                 "messengerPackageName": "com.whatsapp",
@@ -238,26 +247,29 @@ class Sender {
                                                     "message": message.body
                                                 }
                                             },
-                                            { headers: { Token: owner, Id: establishment } })
-                                            .then(async (res) => {
-                                                var message1 = res.data["replies"][0]["message"]
-                
-                                                if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos")){
-                                                    try{
-                                                        fs.writeFile('tokens/' + client.session + '/number-enable/' + phoneNumber, '', (err) => {
-                                                            if (err) throw err;
-                                                        });
-                                                        await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumber)
-                                                    }catch(erro){
-                                                        console.log(erro)
+                                                { headers: { Token: owner, Id: establishment } })
+                                                .then(async (res) => {
+                                                    var message1 = res.data["replies"][0]["message"]
+                                                    if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos") || message1.includes("sentimos") || message1.includes("Sentimos")) {
+                                                        try {
+                                                            fs.writeFile('tokens/' + client.session + '/number-enable/' + phoneNumber.replace("+", ""), '', (err) => {
+                                                                if (err) throw err;
+                                                            });
+                                                            await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumber)
+                                                        } catch (erro) {
+                                                            console.log(erro)
+                                                        }
+                                                    } else {
+                                                        if (message1.includes("==list_values==")) {
+                                                            console.log("Enviado a lista de Preço")
+                                                        } else {
+                                                            await client.sendText(message.from as string, message1 as string)
+                                                        }
                                                     }
-                                                }else{
-                                                    await client.sendText(message.from as string, message1 as string)
-                                                }
-                                            })
-                                            .catch((error) => {
-                                                console.log(error)
-                                            })
+                                                })
+                                                .catch((error) => {
+                                                    console.log(error)
+                                                })
                                         }
                                     });
                                 }
@@ -271,8 +283,8 @@ class Sender {
 
             io.on("connection", (socket: { [x: string]: any; id: string; }) => {
                 const clients = this.clients
-                async function createSession (id: string) {
-                    if (clients.size == 0){
+                async function createSession(id: string) {
+                    if (clients.size == 0) {
                         try {
                             create(id, (base64Qr, attempts) => {
                                 socket.emit("attempts", attempts)
@@ -285,23 +297,24 @@ class Sender {
                                 fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
                                     if (err) throw err;
                                 });
-                                const path = "tokens/"+ client.session + "/number-enable";
-                                
+                                const path = "tokens/" + client.session + "/number-enable";
+
                                 fs.access(path, (error) => {
                                     if (error) {
                                         fs.mkdir(path, { recursive: true }, (error) => {
-                                        if (error) {
-                                            console.log(error);
-                                        }});
+                                            if (error) {
+                                                console.log(error);
+                                            }
+                                        });
                                     }
                                 });
                                 try {
                                     sqlite.insertDados(client.session)
-                                } catch {}
-    
+                                } catch { }
+
                                 socket.emit('message', "CONNECTED")
                                 start(client);
-    
+
                             }).catch((erro) => {
                                 console.log("não foi conectado", erro);
                             });
@@ -309,17 +322,17 @@ class Sender {
                             console.log(error)
                         }
 
-                    }else{
+                    } else {
                         const client = clients.get(id) as Whatsapp
-                        try{
+                        try {
                             var state = await client.getConnectionState()
-                        }catch{
+                        } catch {
                             var state = "" as SocketState
                         }
-                        
-                        if(state == "CONNECTED"){
+
+                        if (state == "CONNECTED") {
                             socket.emit('message', "CONNECTED")
-                        }else{
+                        } else {
                             try {
                                 create(id, (base64Qr, attempts) => {
                                     socket.emit("attempts", attempts)
@@ -332,30 +345,31 @@ class Sender {
                                     fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
                                         if (err) throw err;
                                     });
-                                    const path = "tokens/"+ client.session + "/number-enable";
+                                    const path = "tokens/" + client.session + "/number-enable";
                                     fs.access(path, (error) => {
                                         if (error) {
-                                            fs.mkdir(path, { recursive: true },(error) => {
-                                            if (error) {
-                                                console.log(error);
-                                            }});
+                                            fs.mkdir(path, { recursive: true }, (error) => {
+                                                if (error) {
+                                                    console.log(error);
+                                                }
+                                            });
                                         }
                                     });
 
                                     try {
                                         sqlite.insertDados(client.session)
-                                    } catch {}
-        
+                                    } catch { }
+
                                     socket.emit('message', "CONNECTED")
                                     start(client);
-        
+
                                 }).catch((erro) => {
                                     console.log("não foi conectado", erro);
                                 });
                             } catch (error) {
                                 console.log(error)
                             }
-                        }  
+                        }
                     }
                 }
 
@@ -366,7 +380,7 @@ class Sender {
                 socket.on("activatedBot", function (data: { session: string; status: string | NodeJS.ArrayBufferView; }) {
                     fs.writeFileSync("./tokens/" + data.session.toString() + "/enable", data.status.toString())
                 })
-                socket.on("statusBot", function (data: string){
+                socket.on("statusBot", function (data: string) {
                     var stateBot = fs.readFileSync("./tokens/" + data + "/enable").toString()
                     socket.emit("statusBot", stateBot)
                 })

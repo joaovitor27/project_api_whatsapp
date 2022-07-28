@@ -55,14 +55,14 @@ app.post("/api/update-session", async (req: Request, res: Response) => {
             res.status(401).json({ error: 'unauthorised' })
         } else {
             const { session, owner, establishment } = req.body
-            try{
+            try {
                 await sender.updateSession(session, owner, establishment)
                 return res.status(200).json({ success: "Session updated" })
-            }catch(e){
+            } catch (e) {
                 return res.status(500).json({ success: e })
             }
         }
-        
+
     } catch (error) {
         console.error("error", error)
         res.status(500).json({ status: "error", message: error })
@@ -92,7 +92,7 @@ app.post("/api/get-messages", async (req: Request, res: Response) => {
         if (!apiKey || apiKey !== process.env.API_KEY) {
             res.status(401).json({ error: 'unauthorised' })
         } else {
-            const {number, session} = req.body
+            const { number, session } = req.body
             const getMessages = await sender.getMessages(number, session)
             return res.status(200).json(getMessages)
         }
@@ -103,4 +103,38 @@ app.post("/api/get-messages", async (req: Request, res: Response) => {
     }
 })
 
-app.listen(5001, () => {})
+app.post("/api/remove-blacklist", async (req: Request, res: Response) => {
+    try {
+        const apiKey = req.get('Authorization')
+        if (!apiKey || apiKey !== process.env.API_KEY) {
+            res.status(401).json({ error: 'unauthorised' })
+        } else {
+            const { number, session } = req.body
+            await sender.blackListRemove(number, session)
+            return res.status(200).json({ result: 'successfully remove' })
+        }
+
+    } catch (error) {
+        console.error("error", error)
+        res.status(404).json({ message: "Number does not exist" })
+    }
+})
+
+app.post("/api/add-blacklist", async (req: Request, res: Response) => {
+    try {
+        const apiKey = req.get('Authorization')
+        if (!apiKey || apiKey !== process.env.API_KEY) {
+            res.status(401).json({ error: 'unauthorised' })
+        } else {
+            const { number, session } = req.body
+            await sender.blackListAdd(number, session)
+            return res.status(200).json({ result: 'successfully added' })
+        }
+
+    } catch (error) {
+        console.error("error", error)
+        res.status(404).json({ message: "number already exists" })
+    }
+})
+
+app.listen(5001, () => { })
