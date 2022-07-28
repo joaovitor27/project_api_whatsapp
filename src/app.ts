@@ -103,14 +103,16 @@ app.post("/api/get-messages", async (req: Request, res: Response) => {
     }
 })
 
-app.post("/api/remove-blacklist", async (req: Request, res: Response) => {
+app.put("/api/blacklist/:number/remove", async (req: Request, res: Response) => {
     try {
         const apiKey = req.get('Authorization')
         if (!apiKey || apiKey !== process.env.API_KEY) {
             res.status(401).json({ error: 'unauthorised' })
         } else {
-            const { number, session } = req.body
-            await sender.blackListRemove(number, session)
+            const number = req.params
+            console.log("saaaaaaaaaaaaaaa",number['number'])
+            const { session } = req.body
+            await sender.blackListRemove(number['number'], session)
             return res.status(200).json({ result: 'successfully remove' })
         }
 
@@ -120,7 +122,7 @@ app.post("/api/remove-blacklist", async (req: Request, res: Response) => {
     }
 })
 
-app.post("/api/add-blacklist", async (req: Request, res: Response) => {
+app.post("/api/blacklist", async (req: Request, res: Response) => {
     try {
         const apiKey = req.get('Authorization')
         if (!apiKey || apiKey !== process.env.API_KEY) {
