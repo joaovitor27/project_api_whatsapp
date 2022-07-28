@@ -7,3 +7,4 @@ tokens
 .vscode
 teste.session.sql
 clients.session.sql
+package-lock.json
