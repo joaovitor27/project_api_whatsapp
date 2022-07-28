@@ -190,6 +190,15 @@ class Sender {
                             fs.writeFile("./tokens/" + client.session + "/enable", "false", (err) => {
                                 if (err) throw err;
                             });
+                            const path = "tokens/"+ client.session + "/number-enable";
+                            fs.access(path, (error) => {
+                                if (error) {
+                                    fs.mkdir(path, { recursive: true },(error) => {
+                                    if (error) {
+                                        console.log(error);
+                                    }});
+                                }
+                            });
                             start(client)
                         }).catch((error) => {
                             console.error(error)
@@ -206,7 +215,6 @@ class Sender {
                 })
                 try {
                     client.onAnyMessage(async (message) => {
-
                         const dataEstablishment = await sqlite.getClient(client.session)
                         const owner = dataEstablishment["ownerClient"]
                         const establishment = dataEstablishment["establishment"]
@@ -216,40 +224,43 @@ class Sender {
                             var origen = message["from"] as string
                             if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
                                 if (!(origen != message.chatId)) {
-                                    // varer diretório para verificar se o número está ok!
-                                    if (origen.includes("")){
-                                        console.log("Menssagem: ", message)
-                                        let phoneNumber = parsePhoneNumber(message.from, "BR")?.format("E.164")?.replace("@c.us", "") as string
-                                        botRevGas.post("/", {
-                                            "appPackageName": "venom",
-                                            "messengerPackageName": "com.whatsapp",
-                                            "query": {
-                                                "session": client.session,
-                                                "type": message["type"],
-                                                "sender": phoneNumber,
-                                                "message": message.body
-                                            }
-                                        }, 
-                                        { headers: { Token: owner, Id: establishment } })
-                                        .then(async (res) => {
-                                            var message1 = res.data["replies"][0]["message"]
-            
-                                            if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos")){
-                                                try{
-                                                    fs.writeFileSync("./tokens/" + client.session + "/enable", "false")
-                                                    await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumber)
-                                                }catch(erro){
-                                                    console.log(erro)
+                                    var phoneNumber = parsePhoneNumber(origen, "BR")?.format("E.164")?.replace("@c.us", "") as string
+                                    var path = ".tokens/"+ client.session + "/number-enable/" + phoneNumber;
+                                    fs.access(path, (error) => {
+                                        if (error) {                                            
+                                            botRevGas.post("/", {
+                                                "appPackageName": "venom",
+                                                "messengerPackageName": "com.whatsapp",
+                                                "query": {
+                                                    "session": client.session,
+                                                    "type": message["type"],
+                                                    "sender": phoneNumber,
+                                                    "message": message.body
                                                 }
-                                            }else{
-                                                await client.sendText(message.from as string, message1 as string)
-                                            }
-                                        })
-                                        .catch((error) => {
-                                            console.log(error)
-                                        })
-                                    }
-                                }   
+                                            },
+                                            { headers: { Token: owner, Id: establishment } })
+                                            .then(async (res) => {
+                                                var message1 = res.data["replies"][0]["message"]
+                
+                                                if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos")){
+                                                    try{
+                                                        fs.writeFile('tokens/' + client.session + '/number-enable/' + phoneNumber, '', (err) => {
+                                                            if (err) throw err;
+                                                        });
+                                                        await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumber)
+                                                    }catch(erro){
+                                                        console.log(erro)
+                                                    }
+                                                }else{
+                                                    await client.sendText(message.from as string, message1 as string)
+                                                }
+                                            })
+                                            .catch((error) => {
+                                                console.log(error)
+                                            })
+                                        }
+                                    });
+                                }
                             }
                         }
                     })
@@ -274,6 +285,16 @@ class Sender {
                                 fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
                                     if (err) throw err;
                                 });
+                                const path = "tokens/"+ client.session + "/number-enable";
+                                
+                                fs.access(path, (error) => {
+                                    if (error) {
+                                        fs.mkdir(path, { recursive: true }, (error) => {
+                                        if (error) {
+                                            console.log(error);
+                                        }});
+                                    }
+                                });
                                 try {
                                     sqlite.insertDados(client.session)
                                 } catch {}
@@ -289,7 +310,6 @@ class Sender {
                         }
 
                     }else{
-                        console.log("Entrou aqui")
                         const client = clients.get(id) as Whatsapp
                         try{
                             var state = await client.getConnectionState()
@@ -312,6 +332,16 @@ class Sender {
                                     fs.writeFile("./tokens/" + client.session + "/enable", "true", (err) => {
                                         if (err) throw err;
                                     });
+                                    const path = "tokens/"+ client.session + "/number-enable";
+                                    fs.access(path, (error) => {
+                                        if (error) {
+                                            fs.mkdir(path, { recursive: true },(error) => {
+                                            if (error) {
+                                                console.log(error);
+                                            }});
+                                        }
+                                    });
+
                                     try {
                                         sqlite.insertDados(client.session)
                                     } catch {}
