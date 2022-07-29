@@ -42,10 +42,10 @@
               <h5 id="statusBot"></h5>
               <br>
               <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button class="btn btn-light" type="button" style="background-color: #e1e0e0;" onclick="configSession()" data-bs-toggle="modal" data-bs-target="#configSession"><i class="fa fa-gear" aria-hidden="true"></i></button>
                 <button id="activated" class="btn" style="background-color: #F15A22; color: white;" onclick="activatedBot()"></button>
                 <button class="btn btn-secondary" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal">Sair</button>
               </div>
-              
             </div>
           </div>
           <br><br>
@@ -71,8 +71,34 @@
       </div>
     </div>
   </div>
+  <div class="modal fade" id="configSession" tabindex="-1" aria-labelledby="configSessionlabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Configuração da sessão</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="row">
+              <div class="col">
+                <input id="owner" type="text" class="form-control" placeholder="Owner" onkeypress="return onlynumber();">
+              </div>
+              <div class="col">
+                <input id="establishment" type="text" class="form-control" placeholder="Estabelecimento" onkeypress="return onlynumber();">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button id="addConfig" type="submit" onclick="updateSession()" class="btn" style="background-color: #F15A22; color: white;">Adicionar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 
+<script src="js/icons.js"></script>
 <script src="js/jquery.min.js"></script>
 <script src="js/imask.js"></script>
 <script src="js/bootstrap.min.js"></script>
