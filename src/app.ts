@@ -139,4 +139,21 @@ app.post("/api/blacklist", async (req: Request, res: Response) => {
     }
 })
 
+app.get("/api/blacklist", async (req: Request, res: Response) => {
+    try {
+        const apiKey = req.get('Authorization')
+        if (!apiKey || apiKey !== process.env.API_KEY) {
+            res.status(401).json({ error: 'unauthorised' })
+        } else {
+            let session = req.query.session
+            let blackList = await sender.blackList(session)
+            return res.status(200).json( blackList )
+        }
+
+    } catch (error) {
+        console.error("error", error)
+        res.status(404).json({ message: "number already exists" })
+    }
+})
+
 app.listen(5000, () => { })

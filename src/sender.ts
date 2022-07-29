@@ -172,6 +172,12 @@ class Sender {
         fs.rmSync("./tokens/" + session + "/number-enable/" + number);
     }
 
+    async blackList(session: any) {
+        let listaDeArquivos = fs.readdirSync("./tokens/" + session + "/number-enable");
+        console.log("blacklist", listaDeArquivos)
+        return listaDeArquivos;
+    }
+
     private async initialize() {
 
         const app = express()
