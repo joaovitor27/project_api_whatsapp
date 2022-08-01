@@ -127,10 +127,7 @@ function updateSession(){
 function blacklist(){
     var session = localStorage.getItem('session')
     socket.emit("blacklist", session)
-    socket.on("blacklist", (data) => {
-        var byidElement = document.getElementById("list-black")
-        byidElement.innerHTML = `<br><p>${data}</p>`
-    })
+    socket.on("blacklist", (data) => {})
 }
 function addBlacklist(){
     var session = localStorage.getItem('session')
