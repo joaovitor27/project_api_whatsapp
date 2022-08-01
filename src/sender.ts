@@ -190,6 +190,7 @@ class Sender {
             app.set("view engine", "ejs")
             app.get("/home", (req: Request, res: Response) => {
                 let listaDeArquivos = fs.readdirSync("./tokens/" + session + "/number-enable");
+                console.log(listaDeArquivos)
                 res.render('home.ejs', {"number":listaDeArquivos})
             })
 
