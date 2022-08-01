@@ -105,15 +105,10 @@ function configSession(){
     socket.on('configSession', (data) => {
         let ownerSession = data["ownerClient"]
         let establishmentSession = data["establishment"]
-        console.log(ownerSession, establishmentSession)
         if (ownerSession == null || ownerSession == '' || establishmentSession == null || establishmentSession == ''){
             document.getElementById('addConfig').style.display = 'block';
         }else{
-            document.getElementById('addConfig').style.display = 'none';
-            var establishmentDisabled = document.getElementById("establishment");
-            establishmentDisabled.setAttribute("disabled", "disabled");
-            var ownerDisabled = document.getElementById("owner");
-            ownerDisabled.setAttribute("disabled", "disabled");
+            document.getElementById('addConfig').style.display = 'block';
             document.getElementById('establishment').value = establishmentSession;
             document.getElementById('owner').value = ownerSession;
         }

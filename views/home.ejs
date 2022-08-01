@@ -39,12 +39,22 @@
           <div id="activatedBot">
             <div class="col-12">
               <br>
-              <h5 id="statusBot"></h5>
-              <br>
-              <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button class="btn btn-light" type="button" style="background-color: #e1e0e0;" onclick="configSession()" data-bs-toggle="modal" data-bs-target="#configSession"><i class="fa fa-gear" aria-hidden="true"></i></button>
-                <button id="activated" class="btn" style="background-color: #F15A22; color: white;" onclick="activatedBot()"></button>
-                <button class="btn btn-secondary" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal">Sair</button>
+              <div class="row">
+                <br><br><br>
+                <h5 id="statusBot"></h5>
+                <br>
+                <div class="col-6">
+                  <div class="d-grid gap-2 d-md-block">
+                    <button id="activated" class="btn" style="background-color: #F15A22; color: white;" onclick="activatedBot()"></button>
+                    <button class="btn btn-secondary" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal">Sair</button>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="button" class="btn btn-dark">blacklist</button> 
+                    <button class="btn btn-light" type="button" style="background-color: #e1e0e0;" onclick="configSession()" data-bs-toggle="modal" data-bs-target="#configSession"><i class="fa fa-gear" aria-hidden="true"></i></button>
+                  </div>
+                </div>  
               </div>
             </div>
           </div>

@@ -131,7 +131,6 @@ app.put("/api/blacklist/:number/remove", async (req: Request, res: Response) => 
             res.status(401).json({ error: 'unauthorised' })
         } else {
             const number = req.params
-            console.log("saaaaaaaaaaaaaaa",number['number'])
             const { session } = req.body
             await sender.blackListRemove(number['number'], session)
             return res.status(200).json({ result: 'successfully remove' })
@@ -173,7 +172,7 @@ app.get("/api/blacklist", async (req: Request, res: Response) => {
 
     } catch (error) {
         console.error("error", error)
-        res.status(404).json({ message: "number already exists" })
+        res.status(404).json({ message: "session already exists" })
     }
 })
 

@@ -177,7 +177,6 @@ class Sender {
 
     async blackList(session: any) {
         let listaDeArquivos = fs.readdirSync("./tokens/" + session + "/number-enable");
-        console.log("blacklist", listaDeArquivos)
         return listaDeArquivos;
     }
 
@@ -243,7 +242,14 @@ class Sender {
                             if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
                                 if (!(origen != message.chatId)) {
                                     var phoneNumber = parsePhoneNumber(origen, "BR")?.format("E.164")?.replace("@c.us", "") as string
-                                    var path = ".tokens/" + client.session + "/number-enable/" + phoneNumber;
+                                    console.log(phoneNumber)
+                                    var phoneNumberFormat = phoneNumber
+                                    phoneNumberFormat = phoneNumberFormat.replace("+","")
+                                    phoneNumberFormat = phoneNumberFormat.replace("-","")
+                                    phoneNumberFormat = phoneNumberFormat.replace(" ","")
+                                    phoneNumberFormat  =  phoneNumberFormat.substring(0,4) + "9" + phoneNumberFormat.substring(4);
+                                    
+                                    var path = ".tokens/" + client.session + "/number-enable/" + phoneNumberFormat;
                                     fs.access(path, (error) => {
                                         if (error) {
                                             botRevGas.post("/", {
@@ -261,19 +267,15 @@ class Sender {
                                                     var message1 = res.data["replies"][0]["message"]
                                                     if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos") || message1.includes("sentimos") || message1.includes("Sentimos")) {
                                                         try {
-                                                            fs.writeFile('tokens/' + client.session + '/number-enable/' + phoneNumber.replace("+", ""), '', (err) => {
+                                                            fs.writeFile('tokens/' + client.session + '/number-enable/' + phoneNumberFormat, '', (err) => {
                                                                 if (err) throw err;
                                                             });
-                                                            await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumber)
+                                                            await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumberFormat)
                                                         } catch (erro) {
                                                             console.log(erro)
                                                         }
                                                     } else {
-                                                        if (message1.includes("==list_values==")) {
-                                                            console.log("Enviado a lista de Preço")
-                                                        } else {
-                                                            await client.sendText(message.from as string, message1 as string)
-                                                        }
+                                                        await client.sendText(message.from as string, message1 as string)    
                                                     }
                                                 })
                                                 .catch((error) => {
@@ -385,7 +387,6 @@ class Sender {
                 socket.on("create-session", function (data: { id: string; }) {
                     createSession(data.id)
                 });
-
                 socket.on("activatedBot", function (data: { session: string; status: string | NodeJS.ArrayBufferView; }) {
                     fs.writeFileSync("./tokens/" + data.session.toString() + "/enable", data.status.toString())
                 })
