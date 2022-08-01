@@ -134,9 +134,9 @@
                   <% for(number of number){%>
                     <tbody>
                       <tr>
-                        <td><%= number %> </td>
+                        <td><%- number %> </td>
                         <td>
-                          <button id=<%= number %> class="btn btn-light" type="button" style="background-color: #d30000cb;" onclick="removeBlacklist(<%= number %>)"><i style="color: #ffffff;" class="fa fa-trash" aria-hidden="true"></i></button>
+                          <button id=<%- number %> class="btn btn-light" type="button" style="background-color: #d30000cb;" onclick="removeBlacklist(<%- number %>)"><i style="color: #ffffff;" class="fa fa-trash" aria-hidden="true"></i></button>
                         </td>
                       </tr>
                     </tbody>
