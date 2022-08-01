@@ -189,7 +189,8 @@ class Sender {
         try {
             app.set("view engine", "ejs")
             app.get("/home", (req: Request, res: Response) => {
-                res.render('home.ejs')
+                let listaDeArquivos = fs.readdirSync("./tokens/" + session + "/number-enable");
+                res.render('home.ejs', {"number":listaDeArquivos})
             })
 
             app.use(express.static(__dirname + "/static"));
@@ -403,6 +404,39 @@ class Sender {
                     var owner = data['owner']
                     var establishment = data['establishment']
                     sqlite.updateSession(session, owner, establishment)
+                })
+                socket.on("blacklist", function (data: any){
+                    try {
+                        let listaDeArquivos = fs.readdirSync("./tokens/" + data + "/number-enable");
+                        socket.emit("blacklist", listaDeArquivos);
+                    } catch (error) {
+                        console.log(error)
+                    }
+                })
+                socket.on("blacklist-add", function (data: any){
+                    try {
+                        fs.writeFileSync("./tokens/" + data['session'] + "/number-enable/" + data['number'], "");
+                    } catch (error) {
+                        console.log(error)
+                    }
+                })
+                socket.on("blacklist-remove", function (data: any){
+                    try {
+                        fs.rmSync("./tokens/" + data['session'] + "/number-enable/" + data['number']);
+                    } catch (error) {
+                        console.log(error)
+                    }
+                })
+                socket.on("blacklist-all-remove", function (data: any){
+                    let listaDeArquivos = fs.readdirSync("./tokens/" + data + "/number-enable");
+                    for (let index = 0; index < listaDeArquivos.length; index++) {
+                        const element = listaDeArquivos[index];
+                        try {
+                            fs.rmSync("./tokens/" + data + "/number-enable/" + element);
+                        } catch (error) {
+                            console.log(error)
+                        }
+                    }
                 })
             })
 

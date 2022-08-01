@@ -1,22 +1,23 @@
 const socket = io("http://3.92.199.163");
 
-var element = document.getElementById('idInput');
 var maskOptions = {
     mask: '+00 (00) 00000-0000'
 };
-var mask = IMask(element, maskOptions);
+var idInput = document.getElementById('idInput');
+var maskidInput = IMask(idInput, maskOptions);
+var addNumberBlacklist = document.getElementById('add-number-blacklist');
+var maskAddNumberBlacklist = IMask(addNumberBlacklist, maskOptions);
 
 function onlynumber(evt) {
     var theEvent = evt || window.event;
     var key = theEvent.keyCode || theEvent.which;
     key = String.fromCharCode( key );
-    //var regex = /^[0-9.,]+$/;
     var regex = /^[0-9.]+$/;
     if( !regex.test(key) ) {
        theEvent.returnValue = false;
        if(theEvent.preventDefault) theEvent.preventDefault();
     }
- }
+}
 
 if ((localStorage.getItem('session') == null) && (localStorage.getItem("statusBot") == null)){
     document.getElementById('activatedBot').style.display = 'none';
@@ -26,12 +27,12 @@ if ((localStorage.getItem('session') == null) && (localStorage.getItem("statusBo
     document.getElementById('activatedBot').style.display = 'block';
 }
 function criarSessao() {
-    socket.emit("create-session", { id: mask.unmaskedValue });
+    socket.emit("create-session", { id: maskidInput.unmaskedValue });
     document.getElementById("carregando").style.display = 'block'
-    localStorage.setItem('session', mask.unmaskedValue );
+    localStorage.setItem('session', maskidInput.unmaskedValue );
 }
 socket.on("attempts", (data) => {
-    socket.emit("chamarqr", mask.unmaskedValue)
+    socket.emit("chamarqr", maskidInput.unmaskedValue)
 });
 
 socket.on('qrcode', (data) => {
@@ -83,7 +84,7 @@ socket.on('statusBot', (data) => {
         document.getElementById("activated").innerHTML = "Ligar"
         document.getElementById("statusBot").innerHTML = "O bot está: Desligado"
     }
-    socket.emit('statusBot', mask.unmaskedValue)
+    socket.emit('statusBot', maskidInput.unmaskedValue)
 })
 
 function activatedBot() {
@@ -120,6 +121,30 @@ function updateSession(){
     var establishment = document.getElementById('establishment').value
     var owner = document.getElementById('owner').value
     socket.emit('dataSession', { 'session': session, 'establishment': establishment, 'owner': owner })
+    location.reload();
+}
+
+function blacklist(){
+    var session = localStorage.getItem('session')
+    socket.emit("blacklist", session)
+    socket.on("blacklist", (data) => {
+        var byidElement = document.getElementById("list-black")
+        byidElement.innerHTML = `<br><p>${data}</p>`
+    })
+}
+function addBlacklist(){
+    var session = localStorage.getItem('session')
+    socket.emit("blacklist-add", {'session': session, 'number':maskAddNumberBlacklist.unmaskedValue})
+    location.reload();
+}
+function removeBlacklist(number){
+    var session = localStorage.getItem('session')
+    socket.emit("blacklist-remove", {'session': session, 'number':number})
+    location.reload();
+}
+function removeAllBlacklist(){
+    var session = localStorage.getItem('session')
+    socket.emit("blacklist-all-remove", session)
     location.reload();
 }
 
