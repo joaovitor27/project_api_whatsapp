@@ -48,7 +48,28 @@ app.post("/api/bot-enable", async (req: Request, res: Response) => {
     }
 })
 
-app.post("/api/update-session", async (req: Request, res: Response) => {
+app.get("/api/data-session", async (req: Request, res: Response) => {
+    try {
+        const apiKey = req.get('Authorization')
+        if (!apiKey || apiKey !== process.env.API_KEY) {
+            res.status(401).json({ error: 'unauthorised' })
+        } else {
+            let session = req.query.session
+            try {
+                var dataSession = await sender.dataSession(session)
+                return res.status(200).json(dataSession)
+            } catch (e) {
+                return res.status(500).json({ success: e })
+            }
+        }
+
+    } catch (error) {
+        console.error("error", error)
+        res.status(500).json({ status: "error", message: error })
+    }
+})
+
+app.post("/api/data-session", async (req: Request, res: Response) => {
     try {
         const apiKey = req.get('Authorization')
         if (!apiKey || apiKey !== process.env.API_KEY) {

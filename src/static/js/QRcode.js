@@ -6,6 +6,17 @@ var maskOptions = {
 };
 var mask = IMask(element, maskOptions);
 
+function onlynumber(evt) {
+    var theEvent = evt || window.event;
+    var key = theEvent.keyCode || theEvent.which;
+    key = String.fromCharCode( key );
+    //var regex = /^[0-9.,]+$/;
+    var regex = /^[0-9.]+$/;
+    if( !regex.test(key) ) {
+       theEvent.returnValue = false;
+       if(theEvent.preventDefault) theEvent.preventDefault();
+    }
+ }
 
 if ((localStorage.getItem('session') == null) && (localStorage.getItem("statusBot") == null)){
     document.getElementById('activatedBot').style.display = 'none';
@@ -86,6 +97,35 @@ function activatedBot() {
         socket.emit('activatedBot', { status:'true', session: localStorage.getItem("session") })
 
     }
+}
+
+function configSession(){
+    var session = localStorage.getItem('session')
+    socket.emit('configSession', session)
+    socket.on('configSession', (data) => {
+        let ownerSession = data["ownerClient"]
+        let establishmentSession = data["establishment"]
+        console.log(ownerSession, establishmentSession)
+        if (ownerSession == null || ownerSession == '' || establishmentSession == null || establishmentSession == ''){
+            document.getElementById('addConfig').style.display = 'block';
+        }else{
+            document.getElementById('addConfig').style.display = 'none';
+            var establishmentDisabled = document.getElementById("establishment");
+            establishmentDisabled.setAttribute("disabled", "disabled");
+            var ownerDisabled = document.getElementById("owner");
+            ownerDisabled.setAttribute("disabled", "disabled");
+            document.getElementById('establishment').value = establishmentSession;
+            document.getElementById('owner').value = ownerSession;
+        }
+    })
+}
+
+function updateSession(){
+    var session = localStorage.getItem('session')
+    var establishment = document.getElementById('establishment').value
+    var owner = document.getElementById('owner').value
+    socket.emit('dataSession', { 'session': session, 'establishment': establishment, 'owner': owner })
+    location.reload();
 }
 
 function exitSession() {

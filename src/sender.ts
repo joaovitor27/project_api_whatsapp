@@ -155,6 +155,9 @@ class Sender {
     async updateSession(session: any, owner: any, establishment: any) {
         sqlite.updateSession(session, owner, establishment)
     }
+    async dataSession(session: any) {
+        sqlite.getClient(session)
+    }
 
     async activated(session: any, enable: any) {
         if (!enable) {
@@ -389,6 +392,16 @@ class Sender {
                 socket.on("statusBot", function (data: string) {
                     var stateBot = fs.readFileSync("./tokens/" + data + "/enable").toString()
                     socket.emit("statusBot", stateBot)
+                })
+                socket.on("configSession", async function (data: string) {
+                    let dataSession = await sqlite.getClient(data)
+                    socket.emit("configSession", dataSession)
+                })
+                socket.on("dataSession", function (data: any){
+                    var session = data['session']
+                    var owner = data['owner']
+                    var establishment = data['establishment']
+                    sqlite.updateSession(session, owner, establishment)
                 })
             })
 
