@@ -242,47 +242,45 @@ class Sender {
                             if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
                                 if (!(origen != message.chatId)) {
                                     var phoneNumber = parsePhoneNumber(origen, "BR")?.format("E.164")?.replace("@c.us", "") as string
-                                    console.log(phoneNumber)
                                     var phoneNumberFormat = phoneNumber
-                                    phoneNumberFormat = phoneNumberFormat.replace("+","")
-                                    phoneNumberFormat = phoneNumberFormat.replace("-","")
-                                    phoneNumberFormat = phoneNumberFormat.replace(" ","")
-                                    phoneNumberFormat  =  phoneNumberFormat.substring(0,4) + "9" + phoneNumberFormat.substring(4);
-                                    
-                                    var path = ".tokens/" + client.session + "/number-enable/" + phoneNumberFormat;
-                                    fs.access(path, (error) => {
-                                        if (error) {
-                                            botRevGas.post("/", {
-                                                "appPackageName": "venom",
-                                                "messengerPackageName": "com.whatsapp",
-                                                "query": {
-                                                    "session": client.session,
-                                                    "type": message["type"],
-                                                    "sender": phoneNumber,
-                                                    "message": message.body
-                                                }
-                                            },
-                                                { headers: { Token: owner, Id: establishment } })
-                                                .then(async (res) => {
-                                                    var message1 = res.data["replies"][0]["message"]
-                                                    if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos") || message1.includes("sentimos") || message1.includes("Sentimos")) {
-                                                        try {
-                                                            fs.writeFile('tokens/' + client.session + '/number-enable/' + phoneNumberFormat, '', (err) => {
-                                                                if (err) throw err;
-                                                            });
-                                                            await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumberFormat)
-                                                        } catch (erro) {
-                                                            console.log(erro)
-                                                        }
-                                                    } else {
-                                                        await client.sendText(message.from as string, message1 as string)    
+                                    phoneNumberFormat = phoneNumberFormat.replace("+", "")
+                                    phoneNumberFormat = phoneNumberFormat.replace("-", "")
+                                    phoneNumberFormat = phoneNumberFormat.replace(" ", "")
+                                    phoneNumberFormat = phoneNumberFormat.substring(0, 4) + "9" + phoneNumberFormat.substring(4);
+
+                                    let listaDeArquivos = fs.readdirSync("./tokens/" + client.session + "/number-enable");
+                                    let res = listaDeArquivos.find(element => element == phoneNumberFormat)
+                                    console.log(res)
+                                    console.log(res == null)
+                                    if (res == null) {
+                                        botRevGas.post("/", {
+                                            "appPackageName": "venom",
+                                            "messengerPackageName": "com.whatsapp",
+                                            "query": {
+                                                "session": client.session,
+                                                "type": message["type"],
+                                                "sender": phoneNumber,
+                                                "message": message.body
+                                            }
+                                        },
+                                            { headers: { Token: owner, Id: establishment } })
+                                            .then(async (res) => {
+                                                var message1 = res.data["replies"][0]["message"]
+                                                if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos") || message1.includes("sentimos") || message1.includes("Sentimos")) {
+                                                    try {
+                                                        fs.writeFileSync('tokens/' + client.session + '/number-enable/' + phoneNumberFormat, '')
+                                                        await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumberFormat)
+                                                    } catch (erro) {
+                                                        console.log(erro)
                                                     }
-                                                })
-                                                .catch((error) => {
-                                                    console.log(error)
-                                                })
-                                        }
-                                    });
+                                                } else {
+                                                    await client.sendText(message.from as string, message1 as string)
+                                                }
+                                            })
+                                            .catch((error) => {
+                                                console.log(error)
+                                            })
+                                    }
                                 }
                             }
                         }
@@ -398,13 +396,13 @@ class Sender {
                     let dataSession = await sqlite.getClient(data)
                     socket.emit("configSession", dataSession)
                 })
-                socket.on("dataSession", function (data: any){
+                socket.on("dataSession", function (data: any) {
                     var session = data['session']
                     var owner = data['owner']
                     var establishment = data['establishment']
                     sqlite.updateSession(session, owner, establishment)
                 })
-                socket.on("blacklist", function (data: any){
+                socket.on("blacklist", function (data: any) {
                     try {
                         var html = ''
                         let listaDeArquivos = fs.readdirSync("./tokens/" + data + "/number-enable");
@@ -417,21 +415,21 @@ class Sender {
                         console.log(error)
                     }
                 })
-                socket.on("blacklist-add", function (data: any){
+                socket.on("blacklist-add", function (data: any) {
                     try {
                         fs.writeFileSync("./tokens/" + data['session'] + "/number-enable/" + data['number'], "");
                     } catch (error) {
                         console.log(error)
                     }
                 })
-                socket.on("blacklist-remove", function (data: any){
+                socket.on("blacklist-remove", function (data: any) {
                     try {
                         fs.rmSync("./tokens/" + data['session'] + "/number-enable/" + data['number']);
                     } catch (error) {
                         console.log(error)
                     }
                 })
-                socket.on("blacklist-all-remove", function (data: any){
+                socket.on("blacklist-all-remove", function (data: any) {
                     let listaDeArquivos = fs.readdirSync("./tokens/" + data + "/number-enable");
                     for (let index = 0; index < listaDeArquivos.length; index++) {
                         const element = listaDeArquivos[index];
