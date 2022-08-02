@@ -167,7 +167,7 @@ app.get("/api/blacklist", async (req: Request, res: Response) => {
         } else {
             let session = req.query.session
             let blackList = await sender.blackList(session)
-            return res.status(200).json( blackList )
+            return res.status(200).json(blackList)
         }
 
     } catch (error) {
