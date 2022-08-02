@@ -189,9 +189,7 @@ class Sender {
         try {
             app.set("view engine", "ejs")
             app.get("/home", (req: Request, res: Response) => {
-                let listaDeArquivos = fs.readdirSync("./tokens/" + session + "/number-enable");
-                console.log(listaDeArquivos)
-                res.render('home.ejs', {"number":listaDeArquivos})
+                res.render('home.ejs')
             })
 
             app.use(express.static(__dirname + "/static"));
@@ -408,8 +406,13 @@ class Sender {
                 })
                 socket.on("blacklist", function (data: any){
                     try {
+                        var html = ''
                         let listaDeArquivos = fs.readdirSync("./tokens/" + data + "/number-enable");
-                        socket.emit("blacklist", listaDeArquivos);
+                        for (let index = 0; index < listaDeArquivos.length; index++) {
+                            const element = listaDeArquivos[index];
+                            html = html + `<tr id="${element}"><td>${element}</td><td><button class="btn btn-light" type="button" style="background-color: #d30000cb;" onclick="removeBlacklist(${element})"><i style="color: #ffffff;" class="fa fa-trash" aria-hidden="true"></i></button></td></tr>`
+                        }
+                        socket.emit("blacklist", html);
                     } catch (error) {
                         console.log(error)
                     }

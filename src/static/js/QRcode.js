@@ -127,8 +127,12 @@ function updateSession(){
 function blacklist(){
     var session = localStorage.getItem('session')
     socket.emit("blacklist", session)
-    socket.on("blacklist", (data) => {})
+    let data = socket.on("blacklist", (data) => {
+        document.getElementById("tableNumber").innerHTML = data
+        return data
+    })
 }
+
 function addBlacklist(){
     var session = localStorage.getItem('session')
     socket.emit("blacklist-add", {'session': session, 'number':maskAddNumberBlacklist.unmaskedValue})

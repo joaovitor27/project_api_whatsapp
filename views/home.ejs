@@ -131,16 +131,8 @@
                       <th scope="col">Ação</th>
                     </tr>
                   </thead>
-                  <% for(numberContact of number){%>
-                    <tbody>
-                      <tr>
-                        <td><%- numberContact %> </td>
-                        <td>
-                          <button id=<%- numberContact %> class="btn btn-light" type="button" style="background-color: #d30000cb;" onclick="removeBlacklist(<%- numberContact %>)"><i style="color: #ffffff;" class="fa fa-trash" aria-hidden="true"></i></button>
-                        </td>
-                      </tr>
+                    <tbody id="tableNumber">
                     </tbody>
-                  <% } %>
                 </table>
                 <br>
               </div>
