@@ -22,6 +22,8 @@ export type cards = {
 
 class Sender {
     private clients: Map<string, Whatsapp> = new Map();
+    private timeOutSession: Map<string, Map<string, object>> = new Map();
+    private messsagensClient: Map<string, string> = new Map();
     private connected!: boolean
     private qr!: QRCode
     private msg!: message
@@ -228,7 +230,7 @@ class Sender {
             const botRevGas = axios.create({
                 baseURL: "http://" + process.env.BASE_URL
             })
-            function postBotRevGas(client:Whatsapp, message:any, phoneNumber:string, owner:any, establishment:any, phoneNumberFormat:any) {
+            function postBotRevGas(client:Whatsapp, messageBody:any, message:any, phoneNumber:string, owner:any, establishment:any, phoneNumberFormat:any) {
                 botRevGas.post("/", {
                     "appPackageName": "venom",
                     "messengerPackageName": "com.whatsapp",
@@ -236,7 +238,7 @@ class Sender {
                         "session": client.session,
                         "type": message["type"],
                         "sender": phoneNumber,
-                        "message": message.body
+                        "message": messageBody
                     }
                 }, { headers: { Token: owner, Id: establishment } })
                 .then(async (res) => {
@@ -256,18 +258,15 @@ class Sender {
                     console.log(error)
                 })
             }
-
+            const timeOutSession = this.timeOutSession
+            const messsagensClient = this.messsagensClient
             function start(client: Whatsapp) {
-                const botRevGas = axios.create({
-                    baseURL: "http://" + process.env.BASE_URL
-                })
                 try {
                     client.onAnyMessage(async (message) => {
                         const dataEstablishment = await sqlite.getClient(client.session)
                         const owner = dataEstablishment["ownerClient"]
                         const establishment = dataEstablishment["establishment"]
                         var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
-
                         if (enable && owner != undefined && establishment != undefined) {
                             var origen = message["from"] as string
                             if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
@@ -281,22 +280,46 @@ class Sender {
 
                                     let listaDeArquivos = fs.readdirSync("./tokens/" + client.session + "/number-enable");
                                     let res = listaDeArquivos.find(element => element == phoneNumberFormat)
+                                    
                                     const debounceEvent = (fn: Function, wait = 1000) => {
                                         let time: ReturnType<typeof setTimeout>
                                         return function debounceEvent() {
-                                            console.log("antes do clear", time)
-                                            clearTimeout(time)
+                                            if (messsagensClient.has(origen)){
+                                                var messageAtual = messsagensClient.get(origen)
+                                                messageAtual = messageAtual + message.body + " "
+                                                console.log("menssagens:", messageAtual)
+                                                messsagensClient.set(origen, messageAtual)
+                                            }else{
+                                                messsagensClient.set(origen, message.body + " ")
+                                            }
+
+                                            if (!timeOutSession.has(client.session)){
+                                                timeOutSession.set(client.session, new Map);
+                                            }
+                                            let teste = timeOutSession.get(client.session)
+                                            var timeClientSession = timeOutSession.get(client.session)?.get(origen)
+                                            console.log("timeClientSession", timeClientSession)
+                                            if(timeClientSession){
+                                                console.log("apagou time", timeClientSession)
+                                                clearTimeout(timeClientSession as NodeJS.Timeout) 
+                                            }
+                                            console.log("setou o timer")
                                             time = setTimeout(() => {
-                                                console.log("enviou")
-                                                console.log(time)
-                                                fn(client, message, phoneNumber, owner, establishment, phoneNumberFormat)
+                                                timeOutSession.delete(client.session)
+                                                var messageAtual = messsagensClient.get(origen)
+                                                messsagensClient.delete(origen)
+                                                console.log(messageAtual)
+                                                fn(client, messageAtual, message, phoneNumber, owner, establishment, phoneNumberFormat)
+                                                
                                             }, wait)
-                                            console.log("depois do clear", time)
+                                            if (teste != null){
+                                                teste.set(origen, time)
+                                                console.log("teste")
+                                            }
                                         }
                                     }
                                     if (res == null) {
-                                        console.log('teste')
-                                        const radada = debounceEvent(postBotRevGas, 5000)
+                                        const radada = debounceEvent(postBotRevGas, 3000)
                                         console.log("TIMERRR", radada())
                                     }
                                 }
