@@ -225,6 +225,37 @@ class Sender {
                     }
                 }
             }
+            const botRevGas = axios.create({
+                baseURL: "http://" + process.env.BASE_URL
+            })
+            function postBotRevGas(client:Whatsapp, message:any, phoneNumber:string, owner:any, establishment:any, phoneNumberFormat:any) {
+                botRevGas.post("/", {
+                    "appPackageName": "venom",
+                    "messengerPackageName": "com.whatsapp",
+                    "query": {
+                        "session": client.session,
+                        "type": message["type"],
+                        "sender": phoneNumber,
+                        "message": message.body
+                    }
+                }, { headers: { Token: owner, Id: establishment } })
+                .then(async (res) => {
+                    var message1 = res.data["replies"][0]["message"]
+                    if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos") || message1.includes("sentimos") || message1.includes("Sentimos")) {
+                        try {
+                            fs.writeFileSync('tokens/' + client.session + '/number-enable/' + phoneNumberFormat, '')
+                            await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumberFormat)
+                        } catch (erro) {
+                            console.log(erro)
+                        }
+                    } else {
+                        await client.sendText(message.from as string, message1 as string)
+                    }
+                })
+                .catch((error) => {
+                    console.log(error)
+                })
+            }
 
             function start(client: Whatsapp) {
                 const botRevGas = axios.create({
@@ -250,36 +281,23 @@ class Sender {
 
                                     let listaDeArquivos = fs.readdirSync("./tokens/" + client.session + "/number-enable");
                                     let res = listaDeArquivos.find(element => element == phoneNumberFormat)
-                                    console.log(res)
-                                    console.log(res == null)
+                                    const debounceEvent = (fn: Function, wait = 1000) => {
+                                        let time: ReturnType<typeof setTimeout>
+                                        return function debounceEvent() {
+                                            console.log("antes do clear", time)
+                                            clearTimeout(time)
+                                            time = setTimeout(() => {
+                                                console.log("enviou")
+                                                console.log(time)
+                                                fn(client, message, phoneNumber, owner, establishment, phoneNumberFormat)
+                                            }, wait)
+                                            console.log("depois do clear", time)
+                                        }
+                                    }
                                     if (res == null) {
-                                        botRevGas.post("/", {
-                                            "appPackageName": "venom",
-                                            "messengerPackageName": "com.whatsapp",
-                                            "query": {
-                                                "session": client.session,
-                                                "type": message["type"],
-                                                "sender": phoneNumber,
-                                                "message": message.body
-                                            }
-                                        },
-                                            { headers: { Token: owner, Id: establishment } })
-                                            .then(async (res) => {
-                                                var message1 = res.data["replies"][0]["message"]
-                                                if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos") || message1.includes("sentimos") || message1.includes("Sentimos")) {
-                                                    try {
-                                                        fs.writeFileSync('tokens/' + client.session + '/number-enable/' + phoneNumberFormat, '')
-                                                        await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumberFormat)
-                                                    } catch (erro) {
-                                                        console.log(erro)
-                                                    }
-                                                } else {
-                                                    await client.sendText(message.from as string, message1 as string)
-                                                }
-                                            })
-                                            .catch((error) => {
-                                                console.log(error)
-                                            })
+                                        console.log('teste')
+                                        const radada = debounceEvent(postBotRevGas, 5000)
+                                        console.log("TIMERRR", radada())
                                     }
                                 }
                             }
