@@ -16,11 +16,17 @@ app.post("/api/message", async (req: Request, res: Response) => {
     try {
         const apiKey = req.get('Authorization')
         if (!apiKey || apiKey !== process.env.API_KEY) {
-            res.status(401).json({ error: 'unauthorised' })
+            res.status(401).json({ error: 'unauthorised' });
         } else {
-            const { number, message, session } = req.body
-            await sender.message(number, message, session)
-            return res.status(200).json({ success: "Message sent successfully" })
+            const { number, message, session } = req.body;
+            try {
+                await sender.message(number, message, session);
+                return res.status(200).json({ success: "Message sent successfully" });
+            } catch(e: any) {
+                console.error(e);
+                console.error(req);
+                return res.status(200).json({ error: e.message });
+            }
         }
     } catch (error) {
         console.error("error", error)
@@ -176,4 +182,4 @@ app.get("/api/blacklist", async (req: Request, res: Response) => {
     }
 })
 
-app.listen(5000, () => { })
+app.listen(5001, () => { })

@@ -298,12 +298,9 @@ class Sender {
                                             }
                                             let teste = timeOutSession.get(client.session)
                                             var timeClientSession = timeOutSession.get(client.session)?.get(origen)
-                                            console.log("timeClientSession", timeClientSession)
                                             if(timeClientSession){
-                                                console.log("apagou time", timeClientSession)
                                                 clearTimeout(timeClientSession as NodeJS.Timeout) 
                                             }
-                                            console.log("setou o timer")
                                             time = setTimeout(() => {
                                                 timeOutSession.delete(client.session)
                                                 var messageAtual = messsagensClient.get(origen)
