@@ -153,6 +153,33 @@ class Sender {
                 console.error('Error when sending: ', erro);
             });
     }
+    async sendButtons(session: string, number: string) {
+        if (!isValidPhoneNumber(number, "BR")) {
+            throw new Error("Invalid number!")
+        }
+        let phoneNumber = parsePhoneNumber(number, "BR")?.format("E.164")?.replace("+", "") as string
+        phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
+        const client = this.clients.get(session) as Whatsapp
+        const buttons = [
+            {
+              "buttonText": {
+                "displayText": "Sim"
+                }
+            },
+            {
+              "buttonText": {
+                "displayText": "Não"
+                }
+              }
+            ]
+          await client.sendButtons(phoneNumber, 'Teste butões whatsapp business', buttons, 'Deu certo?')
+            .then((result) => {
+              console.log('Result: ', result); //return object success
+            })
+            .catch((erro) => {
+              console.error('Error when sending: ', erro); //return object error
+            });
+    }
 
     async updateSession(session: any, owner: any, establishment: any) {
         sqlite.updateSession(session, owner, establishment)

@@ -113,6 +113,23 @@ app.post("/api/menu", async (req: Request, res: Response) => {
     }
 })
 
+app.post("/api/buttons", async (req: Request, res: Response) => {
+    try {
+        const apiKey = req.get('Authorization')
+        if (!apiKey || apiKey !== process.env.API_KEY) {
+            res.status(401).json({ error: 'unauthorised' })
+        } else {
+            const { number, session } = req.body
+            await sender.sendButtons(session, number)
+            return res.status(200).json({susseso: 'sadasdsad'})
+        }
+
+    } catch (error) {
+        console.error("error", error)
+        res.status(500).json({ status: "error", message: error })
+    }   
+})
+
 app.post("/api/get-messages", async (req: Request, res: Response) => {
     try {
         const apiKey = req.get('Authorization')
