@@ -1,5 +1,5 @@
 import console from "console";
-import express, { Request, Response } from "express"
+import express, { Request, response, Response } from "express"
 import Sender from "./sender";
 import * as dotenv from 'dotenv';
 
@@ -20,8 +20,9 @@ app.post("/api/message", async (req: Request, res: Response) => {
         } else {
             const { number, message, session } = req.body;
             try {
-                await sender.message(number, message, session);
-                return res.status(200).json({ success: "Message sent successfully" });
+                const message_res = await sender.message(number, message, session);
+                console.log(message_res)
+                return res.status(200).json({ reply: message_res });
             } catch(e: any) {
                 console.error(e);
                 console.error(req);
@@ -103,7 +104,14 @@ app.post("/api/menu", async (req: Request, res: Response) => {
             res.status(401).json({ error: 'unauthorised' })
         } else {
             const { session, number, title, subTitle, description, buttonText, listMenu } = req.body
-            await sender.sendListMenu(session, number, title, subTitle, description, buttonText, listMenu)
+            console.log(session)
+            console.log(number)
+            console.log(title)
+            console.log(subTitle)
+            console.log(description)
+            console.log(buttonText)
+            console.log(listMenu)
+            await sender.sendMenu(session, number, title, subTitle, description, buttonText, listMenu)
 
             return res.status(200).json({ success: "Message sent successfully" })
         }
@@ -119,9 +127,10 @@ app.post("/api/buttons", async (req: Request, res: Response) => {
         if (!apiKey || apiKey !== process.env.API_KEY) {
             res.status(401).json({ error: 'unauthorised' })
         } else {
-            const { number, session } = req.body
-            await sender.sendButtons(session, number)
-            return res.status(200).json({susseso: 'sadasdsad'})
+            const { number, session, message, buttons, submsg='teste' } = req.body
+            const bottons_res = await sender.sendButtons(session, number, message, submsg, buttons)
+            console.log("Botões:", bottons_res)
+            return res.status(200).json({reply: bottons_res})
         }
 
     } catch (error) {
@@ -199,4 +208,4 @@ app.get("/api/blacklist", async (req: Request, res: Response) => {
     }
 })
 
-app.listen(5000, () => { })
+app.listen(5001, () => { })
