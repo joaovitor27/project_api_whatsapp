@@ -55,9 +55,14 @@ class Sender {
         }
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
-
-        const client = this.clients.get(session) as Whatsapp
-        await client.sendText(phoneNumber, body).catch((error: any) => { console.error('Error when sending: ', error); });
+        var enable = fs.readFileSync("./tokens/" + session + "/enable").toString() == "true"
+        if(enable){
+            const client = this.clients.get(session) as Whatsapp
+            await client.sendText(phoneNumber, body).catch((error: any) => { console.error('Error when sending: ', error); });
+            return 'Message sent successfully'
+        }else{
+            return 'Error when sending, bot disabled'
+        }
     }
 
     async getMessages(to: string, session: string) {
@@ -137,7 +142,7 @@ class Sender {
         return mensagens
     }
 
-    async sendListMenu(session: string, number: string, title: string, subTitle: string, description: string, buttonText: string, listMenu: []) {
+    async sendMenu(session: string, number: string, title: string, subTitle: string, description: string, buttonText: string, listMenu: []) {
         if (!isValidPhoneNumber(number, "BR")) {
             throw new Error("Invalid number!")
         }
@@ -152,6 +157,27 @@ class Sender {
             .catch((erro: any) => {
                 console.error('Error when sending: ', erro);
             });
+    }
+    async sendButtons(session: string, number: string, msg:string, submsg:string, buttons:any) {
+        if (!isValidPhoneNumber(number, "BR")) {
+            throw new Error("Invalid number!")
+        }
+        let phoneNumber = parsePhoneNumber(number, "BR")?.format("E.164")?.replace("+", "") as string
+        phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
+        var enable = fs.readFileSync("./tokens/" + session + "/enable").toString() == "true"
+        if(enable){
+            const client = this.clients.get(session) as Whatsapp
+            await client.sendButtons(phoneNumber, msg, buttons, submsg)
+                .then((result) => {
+                    console.log('Result: ', result); //return object success
+                })
+                .catch((erro) => {
+                    console.error('Error when sending: ', erro); //return object error
+                });
+            return 'Bottons sent successfully'
+        }else{
+            return 'Error when sending, bot disabled'
+        }
     }
 
     async updateSession(session: any, owner: any, establishment: any) {
@@ -230,7 +256,7 @@ class Sender {
             const botRevGas = axios.create({
                 baseURL: "http://" + process.env.BASE_URL
             })
-            function postBotRevGas(client:Whatsapp, messageBody:any, message:any, phoneNumber:string, owner:any, establishment:any, phoneNumberFormat:any) {
+            function postBotRevGas(client: Whatsapp, messageBody: any, message: any, phoneNumber: string, owner: any, establishment: any, phoneNumberFormat: any) {
                 botRevGas.post("/", {
                     "appPackageName": "venom",
                     "messengerPackageName": "com.whatsapp",
@@ -241,22 +267,26 @@ class Sender {
                         "message": messageBody
                     }
                 }, { headers: { Token: owner, Id: establishment } })
-                .then(async (res) => {
-                    var message1 = res.data["replies"][0]["message"]
-                    if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos") || message1.includes("sentimos") || message1.includes("Sentimos")) {
-                        try {
-                            fs.writeFileSync('tokens/' + client.session + '/number-enable/' + phoneNumberFormat, '')
-                            await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumberFormat)
-                        } catch (erro) {
-                            console.log(erro)
+                    .then(async (res) => {
+                        var message1 = res.data["replies"][0]["message"]
+                        if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos") || message1.includes("sentimos") || message1.includes("Sentimos")) {
+                            try {
+                                fs.writeFileSync('tokens/' + client.session + '/number-enable/' + phoneNumberFormat, '')
+                                await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumberFormat)
+                            } catch (erro) {
+                                console.log(erro)
+                            }
+                        } else {
+                            if (message1.includes("=@ignore@=")){
+                                console.log('mensagem ignorada')
+                            }else{
+                                await client.sendText(message.from as string, message1 as string)
+                            }
                         }
-                    } else {
-                        await client.sendText(message.from as string, message1 as string)
-                    }
-                })
-                .catch((error) => {
-                    console.log(error)
-                })
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                    })
             }
             const timeOutSession = this.timeOutSession
             const messsagensClient = this.messsagensClient
@@ -280,26 +310,26 @@ class Sender {
 
                                     let listaDeArquivos = fs.readdirSync("./tokens/" + client.session + "/number-enable");
                                     let res = listaDeArquivos.find(element => element == phoneNumberFormat)
-                                    
+
                                     const debounceEvent = (fn: Function, wait = 1000) => {
                                         let time: ReturnType<typeof setTimeout>
                                         return function debounceEvent() {
-                                            if (messsagensClient.has(origen)){
+                                            if (messsagensClient.has(origen)) {
                                                 var messageAtual = messsagensClient.get(origen)
                                                 messageAtual = messageAtual + message.body + " "
                                                 console.log("menssagens:", messageAtual)
                                                 messsagensClient.set(origen, messageAtual)
-                                            }else{
+                                            } else {
                                                 messsagensClient.set(origen, message.body + " ")
                                             }
 
-                                            if (!timeOutSession.has(client.session)){
+                                            if (!timeOutSession.has(client.session)) {
                                                 timeOutSession.set(client.session, new Map);
                                             }
                                             let teste = timeOutSession.get(client.session)
                                             var timeClientSession = timeOutSession.get(client.session)?.get(origen)
-                                            if(timeClientSession){
-                                                clearTimeout(timeClientSession as NodeJS.Timeout) 
+                                            if (timeClientSession) {
+                                                clearTimeout(timeClientSession as NodeJS.Timeout)
                                             }
                                             time = setTimeout(() => {
                                                 timeOutSession.delete(client.session)
@@ -307,9 +337,9 @@ class Sender {
                                                 messsagensClient.delete(origen)
                                                 console.log(messageAtual)
                                                 fn(client, messageAtual, message, phoneNumber, owner, establishment, phoneNumberFormat)
-                                                
+
                                             }, wait)
-                                            if (teste != null){
+                                            if (teste != null) {
                                                 teste.set(origen, time)
                                                 console.log("teste")
                                             }
