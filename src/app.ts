@@ -208,4 +208,4 @@ app.get("/api/blacklist", async (req: Request, res: Response) => {
     }
 })
 
-app.listen(5001, () => { })
+app.listen(5000, () => { })
