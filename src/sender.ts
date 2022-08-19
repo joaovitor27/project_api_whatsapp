@@ -311,7 +311,7 @@ class Sender {
                                     let listaDeArquivos = fs.readdirSync("./tokens/" + client.session + "/number-enable");
                                     let res = listaDeArquivos.find(element => element == phoneNumberFormat)
 
-                                    const debounceEvent = (fn: Function, wait = 1000) => {
+                                    const debounceEvent = (fn: Function, wait: number | undefined) => {
                                         let time: ReturnType<typeof setTimeout>
                                         return function debounceEvent() {
                                             if (messsagensClient.has(origen)) {
@@ -322,7 +322,6 @@ class Sender {
                                             } else {
                                                 messsagensClient.set(origen, message.body + " ")
                                             }
-
                                             if (!timeOutSession.has(client.session)) {
                                                 timeOutSession.set(client.session, new Map);
                                             }
@@ -346,7 +345,7 @@ class Sender {
                                         }
                                     }
                                     if (res == null) {
-                                        const radada = debounceEvent(postBotRevGas, 3000)
+                                        const radada = debounceEvent(postBotRevGas, 5000)
                                         console.log("TIMERRR", radada())
                                     }
                                 }
