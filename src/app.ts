@@ -1,6 +1,7 @@
 import console from "console";
 import express, { Request, response, Response } from "express"
 import Sender from "./sender";
+import axios from "axios";
 import * as dotenv from 'dotenv';
 
 const sender = new Sender()
@@ -24,6 +25,10 @@ app.post("/api/message", async (req: Request, res: Response) => {
                 console.log(message_res)
                 return res.status(200).json({ reply: message_res });
             } catch(e: any) {
+                axios.post(process.env.WEBHOOK_SLACK as string, { "text": e.toString()})
+                .catch((erro: any) => {
+                    console.error('Error when sending: ', erro);
+                });
                 console.error(e);
                 console.error(req);
                 return res.status(200).json({ error: e.message });
@@ -104,8 +109,6 @@ app.post("/api/menu", async (req: Request, res: Response) => {
             res.status(401).json({ error: 'unauthorised' })
         } else {
             const { session, number, title, subTitle, description, buttonText, listMenu } = req.body
-            console.log(session)
-            console.log(number)
             console.log(title)
             console.log(subTitle)
             console.log(description)
@@ -137,23 +140,6 @@ app.post("/api/buttons", async (req: Request, res: Response) => {
         console.error("error", error)
         res.status(500).json({ status: "error", message: error })
     }   
-})
-
-app.post("/api/get-messages", async (req: Request, res: Response) => {
-    try {
-        const apiKey = req.get('Authorization')
-        if (!apiKey || apiKey !== process.env.API_KEY) {
-            res.status(401).json({ error: 'unauthorised' })
-        } else {
-            const { number, session } = req.body
-            const getMessages = await sender.getMessages(number, session)
-            return res.status(200).json(getMessages)
-        }
-
-    } catch (error) {
-        console.error("error", error)
-        res.status(500).json({ status: "error", message: error })
-    }
 })
 
 app.put("/api/blacklist/:number/remove", async (req: Request, res: Response) => {

@@ -50,9 +50,11 @@ class Sender {
     }
 
     async message(to: string, body: string, session: string) {
+        console.log(to)
         if (!isValidPhoneNumber(to, "BR")) {
             throw new Error("Invalid number!")
         }
+        console.log(to)
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
         var enable = fs.readFileSync("./tokens/" + session + "/enable").toString() == "true"
@@ -63,83 +65,6 @@ class Sender {
         }else{
             return 'Error when sending, bot disabled'
         }
-    }
-
-    async getMessages(to: string, session: string) {
-        if (!isValidPhoneNumber(to, "BR")) {
-            throw new Error("Invalid number!")
-        }
-        let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
-        phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
-
-        const client = this.clients.get(session) as Whatsapp
-        let messagesAll = await client.getAllMessagesInChat(phoneNumber, false, true);
-
-        var mensagens: message[] = []
-        for (let index = 0; index < messagesAll.length; index++) {
-            const element: { [index: string]: any } = messagesAll[index];
-            const idMessage = element["id"]
-            const type = element["type"]
-            const message = element["body"]
-            const from = element["from"]
-            const to = element["to"]
-            const isNewMsg = element["isNewMsg"]
-            const isMedia = element["isMedia"]
-            const chatId = element["chatId"]
-            const mediaData = element["mediaData"]
-
-            if (type == "location") {
-                const lat = element["lat"]
-                const lng = element["lng"]
-
-                const newMessage = {
-                    "idMensagem": idMessage,
-                    "type": type,
-                    "message": message,
-                    "form": from,
-                    "to": to,
-                    "chatId": chatId,
-                    "isNewMsg": isNewMsg,
-                    "latitude": lat,
-                    "longitude": lng,
-                    "isMedia": isMedia,
-                    "date": new Date(element["timestamp"] * 1000),
-                } as never
-                mensagens.push(newMessage)
-
-            } else {
-                if (type == "image" || type == "video" || type == "audio" || type == "ptt") {
-                    const newMessage = {
-                        "idMensagem": idMessage,
-                        "type": type,
-                        "message": message,
-                        "form": from,
-                        "to": to,
-                        "chatId": chatId,
-                        "isNewMsg": isNewMsg,
-                        "isMedia": isMedia,
-                        "date": new Date(element["timestamp"] * 1000),
-                        "mediaData": mediaData
-                    } as never
-                    mensagens.push(newMessage)
-
-                } else {
-                    const newMessage = {
-                        "idMensagem": idMessage,
-                        "type": type,
-                        "message": message,
-                        "form": from,
-                        "to": to,
-                        "chatId": chatId,
-                        "isNewMsg": isNewMsg,
-                        "isMedia": isMedia,
-                        "date": new Date(element["timestamp"] * 1000)
-                    } as never
-                    mensagens.push(newMessage)
-                }
-            }
-        }
-        return mensagens
     }
 
     async sendMenu(session: string, number: string, title: string, subTitle: string, description: string, buttonText: string, listMenu: []) {
@@ -280,7 +205,13 @@ class Sender {
                             if (message1.includes("=@ignore@=")){
                                 console.log('mensagem ignorada')
                             }else{
-                                await client.sendText(message.from as string, message1 as string)
+                                let sendtext = axios.create({
+                                    baseURL: "http://" + process.env.BASE_URL_API
+                                })
+                                sendtext.post("/api/message/", {'session': client.session, 'number': phoneNumber, 'message': message1},
+                                { headers: { 'Authorization': process.env.API_KEY as string, 'Content-Type': 'application/json' } }).then((res)=>{
+                                    console.log(res)
+                                })
                             }
                         }
                     })
