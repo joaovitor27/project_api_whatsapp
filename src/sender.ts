@@ -232,6 +232,7 @@ class Sender {
                             var origen = message["from"] as string
                             if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
                                 if (!(origen != message.chatId)) {
+                                    console.log(message.type)
                                     var phoneNumber = parsePhoneNumber(origen, "BR")?.format("E.164")?.replace("@c.us", "") as string
                                     var phoneNumberFormat = phoneNumber
                                     phoneNumberFormat = phoneNumberFormat.replace("+", "")
@@ -245,11 +246,18 @@ class Sender {
                                     const debounceEvent = (fn: Function, wait: number | undefined) => {
                                         let time: ReturnType<typeof setTimeout>
                                         return function debounceEvent() {
+                                            console.log("body: ", message.body)
+                                            var messageAtual = messsagensClient.get(origen)
                                             if (messsagensClient.has(origen)) {
-                                                var messageAtual = messsagensClient.get(origen)
-                                                messageAtual = messageAtual + message.body + " "
-                                                console.log("menssagens:", messageAtual)
-                                                messsagensClient.set(origen, messageAtual)
+                                                if (message.type == 'sticker'){
+                                                    console.log("menssagens:", messageAtual)
+                                                    messsagensClient.set(origen, messageAtual as string)
+                                                }
+                                                else{
+                                                    messageAtual = messageAtual + message.body + " "
+                                                    console.log("menssagens:", messageAtual)
+                                                    messsagensClient.set(origen, messageAtual)
+                                                }
                                             } else {
                                                 messsagensClient.set(origen, message.body + " ")
                                             }
