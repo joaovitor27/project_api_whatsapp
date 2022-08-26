@@ -1,4 +1,5 @@
-const socket = io("http://3.92.199.163");
+const url = location.hostname
+const socket = io(url);
 
 var maskOptions = {
     mask: '+00 (00) 00000-0000'
