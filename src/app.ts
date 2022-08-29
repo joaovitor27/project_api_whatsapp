@@ -19,7 +19,8 @@ app.post("/api/message", async (req: Request, res: Response) => {
         if (!apiKey || apiKey !== process.env.API_KEY) {
             res.status(401).json({ error: 'unauthorised' });
         } else {
-            const { number, message, session } = req.body;
+	    let { number, message, session } = req.body;
+            session = session.replace(/\D/g, '')
             try {
                 const message_res = await sender.message(number, message, session);
                 console.log(message_res)
@@ -46,7 +47,8 @@ app.post("/api/bot-enable", async (req: Request, res: Response) => {
         if (!apiKey || apiKey !== process.env.API_KEY) {
             res.status(401).json({ error: 'unauthorised' })
         } else {
-            const { session, enable } = req.body
+	    let { session, enable } = req.body
+            session = session.replace(/\D/g, '')
             await sender.activated(session, enable)
             if (enable) {
                 return res.status(200).json({ success: "Bot " + session + " activated" })
@@ -108,7 +110,8 @@ app.post("/api/menu", async (req: Request, res: Response) => {
         if (!apiKey || apiKey !== process.env.API_KEY) {
             res.status(401).json({ error: 'unauthorised' })
         } else {
-            const { session, number, title, subTitle, description, buttonText, listMenu } = req.body
+	    let { session, number, title, subTitle, description, buttonText, listMenu } = req.body
+            session = session.replace(/\D/g, '')
             console.log(title)
             console.log(subTitle)
             console.log(description)
@@ -130,7 +133,8 @@ app.post("/api/buttons", async (req: Request, res: Response) => {
         if (!apiKey || apiKey !== process.env.API_KEY) {
             res.status(401).json({ error: 'unauthorised' })
         } else {
-            const { number, session, message, buttons, submsg='teste' } = req.body
+	    let { number, session, message, buttons, submsg='teste' } = req.body
+            session = session.replace(/\D/g, '')
             const bottons_res = await sender.sendButtons(session, number, message, submsg, buttons)
             console.log("Botões:", bottons_res)
             return res.status(200).json({reply: bottons_res})
