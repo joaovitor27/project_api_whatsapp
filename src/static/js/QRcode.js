@@ -1,5 +1,5 @@
-const url = location.hostname
-const socket = io(url);
+const url = location.host
+const socket = io("http://" + url);
 
 var maskOptions = {
     mask: '+00 (00) 00000-0000'
