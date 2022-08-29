@@ -198,4 +198,38 @@ app.get("/api/blacklist", async (req: Request, res: Response) => {
     }
 })
 
+app.post("/api/version-web", async (req: Request, res: Response) => {
+    try {
+        const apiKey = req.get('Authorization')
+        if (!apiKey || apiKey !== process.env.API_KEY) {
+            res.status(401).json({ error: 'unauthorised' })
+        } else {
+            const { session } = req.body
+            const version = await sender.versionWA(session)
+            return res.status(200).json({ result: version })
+        }
+
+    } catch (error) {
+        console.error("error", error)
+        res.status(404).json({ message: "session already exists" })
+    }
+})
+
+app.delete("/api/delete-session/:session", async (req: Request, res: Response) => {
+    try {
+        const apiKey = req.get('Authorization')
+        if (!apiKey || apiKey !== process.env.API_KEY) {
+            res.status(401).json({ error: 'unauthorised' })
+        } else {
+            const { session } = req.params
+            const result = await sender.deleteSession(session)
+            return res.status(200).json({ result: result })
+        }
+
+    } catch (error) {
+        console.error("error", error)
+        res.status(404).json({ message: "session already exists" })
+    }
+})
+
 app.listen(5000, () => { })

@@ -133,6 +133,17 @@ class Sender {
         return listaDeArquivos;
     }
 
+    async versionWA(session: any) {
+        const client = this.clients.get(session) as Whatsapp
+        const versionWA = await client.getWAVersion();
+        return versionWA
+    }
+
+    async deleteSession(session: any) {
+        sqlite.deleteSession(session)
+        return "delete successfully"
+    }
+
     private async initialize() {
 
         const app = express()
@@ -222,8 +233,10 @@ class Sender {
             const timeOutSession = this.timeOutSession
             const messsagensClient = this.messsagensClient
             function start(client: Whatsapp) {
+                console.log("start:  ===============================", client.session)
                 try {
                     client.onAnyMessage(async (message) => {
+                        console.log("menssagem:  ===============================", message)
                         const dataEstablishment = await sqlite.getClient(client.session)
                         const owner = dataEstablishment["ownerClient"]
                         const establishment = dataEstablishment["establishment"]

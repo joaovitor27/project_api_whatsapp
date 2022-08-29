@@ -51,5 +51,16 @@ module.exports = {
     } catch (e) {
       return e
     }
+  },
+  deleteSession: async function (session: any) {
+    var db = await this.openDb()
+    try {
+      const result = await db.get("DELETE FROM clients WHERE session = $session", {
+        $session: session
+      })
+      return result
+    } catch (e) {
+      return e
+    }
   }
 };
