@@ -308,6 +308,19 @@ class Sender {
                             }
                         }
                     })
+
+                    client.onStateChange((state) => {
+                        console.log('State changed: ', state);
+                        // force whatsapp take over
+                        if ('CONFLICT'.includes(state)) client.useHere();
+                        // detect disconnect on whatsapp
+                        if ('UNPAIRED'.includes(state)) console.log('logout');
+                      });
+                      
+                    client.onStreamChange((state) => {
+                        console.log('State Connection Stream: ' + state);
+                    });
+
                 } catch (error) {
                     console.log(error)
                 }
