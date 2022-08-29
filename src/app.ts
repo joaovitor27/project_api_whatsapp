@@ -23,10 +23,9 @@ app.post("/api/message", async (req: Request, res: Response) => {
             session = session.replace(/\D/g, '')
             try {
                 const message_res = await sender.message(number, message, session);
-                console.log(message_res)
                 return res.status(200).json({ reply: message_res });
             } catch(e: any) {
-                axios.post(process.env.WEBHOOK_SLACK as string, { "text": e.toString()})
+                axios.post(process.env.WEBHOOK_SLACK as string, { "text": "Error in Whatsapp Integration\n" + e.toString() + "Session:" + session})
                 .catch((erro: any) => {
                     console.error('Error when sending: ', erro);
                 });
@@ -112,13 +111,7 @@ app.post("/api/menu", async (req: Request, res: Response) => {
         } else {
 	    let { session, number, title, subTitle, description, buttonText, listMenu } = req.body
             session = session.replace(/\D/g, '')
-            console.log(title)
-            console.log(subTitle)
-            console.log(description)
-            console.log(buttonText)
-            console.log(listMenu)
             await sender.sendMenu(session, number, title, subTitle, description, buttonText, listMenu)
-
             return res.status(200).json({ success: "Message sent successfully" })
         }
     } catch (error) {
@@ -136,7 +129,6 @@ app.post("/api/buttons", async (req: Request, res: Response) => {
 	    let { number, session, message, buttons, submsg='teste' } = req.body
             session = session.replace(/\D/g, '')
             const bottons_res = await sender.sendButtons(session, number, message, submsg, buttons)
-            console.log("Botões:", bottons_res)
             return res.status(200).json({reply: bottons_res})
         }
 
@@ -223,6 +215,22 @@ app.delete("/api/delete-session/:session", async (req: Request, res: Response) =
         } else {
             const { session } = req.params
             const result = await sender.deleteSession(session)
+            return res.status(200).json({ result: result })
+        }
+
+    } catch (error) {
+        console.error("error", error)
+        res.status(404).json({ message: "session already exists" })
+    }
+})
+
+app.get("/api/close-session", async (req: Request, res: Response) => {
+    try {
+        const apiKey = req.get('Authorization')
+        if (!apiKey || apiKey !== process.env.API_KEY) {
+            res.status(401).json({ error: 'unauthorised' })
+        } else {
+            const result = await sender.closeSessions()
             return res.status(200).json({ result: result })
         }
 

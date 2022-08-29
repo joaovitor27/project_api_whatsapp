@@ -58,11 +58,11 @@ class Sender {
         let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
         var enable = fs.readFileSync("./tokens/" + session + "/enable").toString() == "true"
-        if(enable){
+        if (enable) {
             const client = this.clients.get(session) as Whatsapp
             await client.sendText(phoneNumber, body).catch((error: any) => { console.error('Error when sending: ', error); });
             return 'Message sent successfully'
-        }else{
+        } else {
             return 'Error when sending, bot disabled'
         }
     }
@@ -83,14 +83,14 @@ class Sender {
                 console.error('Error when sending: ', erro);
             });
     }
-    async sendButtons(session: string, number: string, msg:string, submsg:string, buttons:any) {
+    async sendButtons(session: string, number: string, msg: string, submsg: string, buttons: any) {
         if (!isValidPhoneNumber(number, "BR")) {
             throw new Error("Invalid number!")
         }
         let phoneNumber = parsePhoneNumber(number, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
         var enable = fs.readFileSync("./tokens/" + session + "/enable").toString() == "true"
-        if(enable){
+        if (enable) {
             const client = this.clients.get(session) as Whatsapp
             await client.sendButtons(phoneNumber, msg, buttons, submsg)
                 .then((result) => {
@@ -100,7 +100,7 @@ class Sender {
                     console.error('Error when sending: ', erro); //return object error
                 });
             return 'Bottons sent successfully'
-        }else{
+        } else {
             return 'Error when sending, bot disabled'
         }
     }
@@ -142,6 +142,19 @@ class Sender {
     async deleteSession(session: any) {
         sqlite.deleteSession(session)
         return "delete successfully"
+    }
+
+    async closeSessions() {
+        console.log(this.clients.values())
+        console.log(clients)
+        var clients = await sqlite.getClients()
+        for (let index = 0; index < this.clients.size; index++) {
+            let element: any = clients[index];
+            let session = element["session"]
+            const client = this.clients.get(session) as Whatsapp
+            client.close()
+        }
+        return "closed sessions"
     }
 
     private async initialize() {
@@ -213,16 +226,16 @@ class Sender {
                                 console.log(erro)
                             }
                         } else {
-                            if (message1.includes("=@ignore@=")){
+                            if (message1.includes("=@ignore@=")) {
                                 console.log('mensagem ignorada')
-                            }else{
+                            } else {
                                 let sendtext = axios.create({
                                     baseURL: "http://" + process.env.BASE_URL_API
                                 })
-                                sendtext.post("/api/message/", {'session': client.session, 'number': phoneNumber, 'message': message1},
-                                { headers: { 'Authorization': process.env.API_KEY as string, 'Content-Type': 'application/json' } }).then((res)=>{
-                                    console.log(res)
-                                })
+                                sendtext.post("/api/message/", { 'session': client.session, 'number': phoneNumber, 'message': message1 },
+                                    { headers: { 'Authorization': process.env.API_KEY as string, 'Content-Type': 'application/json' } }).then((res) => {
+                                        console.log(res)
+                                    })
                             }
                         }
                     })
@@ -236,18 +249,14 @@ class Sender {
                 console.log("start:  ===============================", client.session)
                 try {
                     client.onAnyMessage(async (message) => {
-                        console.log("menssagem:  ===============================", message)
                         const dataEstablishment = await sqlite.getClient(client.session)
                         const owner = dataEstablishment["ownerClient"]
                         const establishment = dataEstablishment["establishment"]
                         var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
-                        console.log("menssagem:  ===============================", message)
                         console.log("enable", enable)
                         if (enable && owner != undefined && establishment != undefined) {
-                            console.log("enable", enable)
                             var origen = message["from"] as string
-                            if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
-                                console.log("enable", enable)
+                            if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {                               
                                 if (!(origen != message.chatId)) {
                                     console.log(message.type)
                                     var phoneNumber = parsePhoneNumber(origen, "BR")?.format("E.164")?.replace("@c.us", "") as string
@@ -266,11 +275,11 @@ class Sender {
                                             console.log("body: ", message.body)
                                             var messageAtual = messsagensClient.get(origen)
                                             if (messsagensClient.has(origen)) {
-                                                if (message.type == 'sticker'){
+                                                if (message.type == 'sticker') {
                                                     console.log("menssagens:", messageAtual)
                                                     messsagensClient.set(origen, messageAtual as string)
                                                 }
-                                                else{
+                                                else {
                                                     messageAtual = messageAtual + message.body + " "
                                                     console.log("menssagens:", messageAtual)
                                                     messsagensClient.set(origen, messageAtual)
@@ -315,8 +324,8 @@ class Sender {
                         if ('CONFLICT'.includes(state)) client.useHere();
                         // detect disconnect on whatsapp
                         if ('UNPAIRED'.includes(state)) console.log('logout');
-                      });
-                      
+                    });
+
                     client.onStreamChange((state) => {
                         console.log('State Connection Stream: ' + state);
                     });
