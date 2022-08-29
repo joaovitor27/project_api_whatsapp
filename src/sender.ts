@@ -228,9 +228,13 @@ class Sender {
                         const owner = dataEstablishment["ownerClient"]
                         const establishment = dataEstablishment["establishment"]
                         var enable = fs.readFileSync("./tokens/" + client.session + "/enable").toString() == "true"
+                        console.log("menssagem:  ===============================", message)
+                        console.log("enable", enable)
                         if (enable && owner != undefined && establishment != undefined) {
+                            console.log("enable", enable)
                             var origen = message["from"] as string
                             if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
+                                console.log("enable", enable)
                                 if (!(origen != message.chatId)) {
                                     console.log(message.type)
                                     var phoneNumber = parsePhoneNumber(origen, "BR")?.format("E.164")?.replace("@c.us", "") as string
