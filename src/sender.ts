@@ -256,7 +256,7 @@ class Sender {
                         console.log("enable", enable)
                         if (enable && owner != undefined && establishment != undefined) {
                             var origen = message["from"] as string
-                            if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {                               
+                            if (!(origen.includes("@g.us") || origen.includes("@broadcast"))) {
                                 if (!(origen != message.chatId)) {
                                     console.log(message.type)
                                     var phoneNumber = parsePhoneNumber(origen, "BR")?.format("E.164")?.replace("@c.us", "") as string
@@ -268,7 +268,6 @@ class Sender {
 
                                     let listaDeArquivos = fs.readdirSync("./tokens/" + client.session + "/number-enable");
                                     let res = listaDeArquivos.find(element => element == phoneNumberFormat)
-
                                     const debounceEvent = (fn: Function, wait: number | undefined) => {
                                         let time: ReturnType<typeof setTimeout>
                                         return function debounceEvent() {
@@ -320,9 +319,13 @@ class Sender {
 
                     client.onStateChange((state) => {
                         console.log('State changed: ', state);
-                        // force whatsapp take over
+                        if ('CONNECTED'.includes(state)){
+                            console.log('CONNECTED')
+                        }else{
+                            axios.post(process.env.WEBHOOK_SLACK as string, { "text": "Error in Whatsapp Integration\n" + 
+                            "Mudança de status na sessão: " + client.session + "\nStatus atual: " + state})
+                        }
                         if ('CONFLICT'.includes(state)) client.useHere();
-                        // detect disconnect on whatsapp
                         if ('UNPAIRED'.includes(state)) console.log('logout');
                     });
 
