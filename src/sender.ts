@@ -319,18 +319,13 @@ class Sender {
 
                     client.onStateChange((state) => {
                         console.log('State changed: ', state);
-                        if ('CONNECTED'.includes(state)){
-                            console.log('CONNECTED')
-                        }else{
+                        if ('DIS'.includes(state)){
+                            console.log('DISCONNECTED')
                             axios.post(process.env.WEBHOOK_SLACK as string, { "text": "Error in Whatsapp Integration\n" + 
                             "Mudança de status na sessão: " + client.session + "\nStatus atual: " + state})
                         }
                         if ('CONFLICT'.includes(state)) client.useHere();
                         if ('UNPAIRED'.includes(state)) console.log('logout');
-                    });
-
-                    client.onStreamChange((state) => {
-                        console.log('State Connection Stream: ' + state);
                     });
 
                 } catch (error) {
