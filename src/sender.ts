@@ -221,7 +221,7 @@ class Sender {
                         if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos") || message1.includes("sentimos") || message1.includes("Sentimos")) {
                             try {
                                 fs.writeFileSync('tokens/' + client.session + '/number-enable/' + phoneNumberFormat, '')
-                                await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + "com o cliente: " + phoneNumberFormat)
+                                axios.post(process.env.WEBHOOK_SLACK_RAISED_HAND as string, { "text": "Bot não entendeu na revenda: " + client.session + " com o cliente: " + phoneNumberFormat})
                             } catch (erro) {
                                 console.log(erro)
                             }
