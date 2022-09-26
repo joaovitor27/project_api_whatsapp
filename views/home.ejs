@@ -3,184 +3,203 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <link rel="shortcut icon" type="imagem/x-icon" href="/img/image.png" />
-  <link rel="stylesheet" href="css/bootstrap.min.css">
-  <title>RevBot</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <link rel="shortcut icon" type="imagem/x-icon" href="/img/image.png"/>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <title>RevBot</title>
 </head>
 
 <body>
-  <div class="container"
-    style="width: 100vw; height: 100vh; display: flex; flex-direction: row; justify-content: center; align-items: center;">
+<div class="container"
+     style="width: 100vw; height: 100vh; display: flex; flex-direction: row; justify-content: center; align-items: center;">
     <div class="position-relative">
-      <div class="position-absolute top-50 start-50 translate-middle">
-        <div id="criar" class="tabName" style="align-items: center;">
-          <img id="logo" src="img/logo.png">
-          <br><br>
-          <p id="textID" style="display:none"></p>
-          <div id="carregando" class="text-center" style="display:none">
-            <div class="spinner-border" role="status" style="color: #F15A22;">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-          <div id="formulario">
-            <img class="rounded mx-auto d-block" id="img1">
-            <h3></h3>
-            <div class="col-12">
-              <label for="inputAddress" class="form-label">Sessão:</label>
-              <input type="text" class="form-control" id="idInput" placeholder="Digite o Número do Whatsapp">
-            </div>
-            <br>
-            <div class="d-grid gap-2 col-5 mx-auto">
-              <button class="btn" style="background-color: #F15A22; color: white;"
-                onclick="criarSessao()">Criar</button>
-            </div>
-          </div>
-          <div id="activatedBot">
-            <div class="col-12">
-              <br>
-              <div class="row">
-                <br><br><br>
-                <h5 id="statusBot"></h5>
-                <br>
-                <div class="col-6">
-                  <div class="d-grid gap-2 d-md-block">
-                    <button id="activated" class="btn" style="background-color: #F15A22; color: white;"
-                      onclick="activatedBot()"></button>
-                    <button class="btn btn-secondary" type="button" data-bs-toggle="modal"
-                      data-bs-target="#exampleModal">Sair</button>
-                  </div>
+        <div class="position-absolute top-50 start-50 translate-middle">
+            <div id="criar" class="tabName" style="align-items: center;">
+                <img id="logo" src="img/logo.png">
+                <br><br>
+                <p id="textID" style="display:none"></p>
+                <div id="carregando" class="text-center" style="display:none">
+                    <div class="spinner-border" role="status" style="color: #F15A22;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
                 </div>
-                <div class="col-6">
-                  <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#blacklistModal"
-                      onclick="blacklist()">Bloqueados</button>
-                    <button class="btn btn-light" type="button" style="background-color: #e1e0e0;"
-                      onclick="configSession()" data-bs-toggle="modal" data-bs-target="#configSession"><i
-                        class="fa fa-gear" aria-hidden="true"></i></button>
-                  </div>
+                <div id="formulario">
+                    <img class="rounded mx-auto d-block" id="img1">
+                    <h3></h3>
+                    <div class="col-12">
+                        <label for="idInput" class="form-label">Sessão:</label>
+                        <input type="text" class="form-control" id="idInput" placeholder="Digite o Número do Whatsapp">
+                    </div>
+                    <br>
+                    <div class="d-grid gap-2 col-5 mx-auto">
+                        <button class="btn" style="background-color: #F15A22; color: white;"
+                                onclick="createSession()">Criar
+                        </button>
+                    </div>
                 </div>
-              </div>
-            </div>
-          </div>
-          <br><br>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- Modal -->
-  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Sair</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          Tem certesa que deseja sair?
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn" onclick="exitSession()"
-            style="background-color: #F15A22; color: white;">Sair</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="modal fade" id="configSession" tabindex="-1" aria-labelledby="configSessionlabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Configuração da sessão</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form>
-            <div class="row">
-              <div class="col">
-                <input id="owner" type="text" class="form-control" placeholder="Owner"
-                  onkeypress="return onlynumber();">
-              </div>
-              <div class="col">
-                <input id="establishment" type="text" class="form-control" placeholder="Estabelecimento"
-                  onkeypress="return onlynumber();">
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button id="addConfig" type="submit" onclick="updateSession()" class="btn"
-            style="background-color: #F15A22; color: white;">Adicionar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="modal fade" id="blacklistModal" tabindex="-1" aria-labelledby="blacklistModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content" id="blacklist">
-        <div class="modal-body">
-          <ul class="nav nav-tabs" id="myTab" role="tablist" style="align-self: center;">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button"
-                onclick="blacklist()" role="tab" aria-controls="home" aria-selected="true">Listar</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button"
-                role="tab" aria-controls="profile" aria-selected="false">Adicionar</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button"
-                role="tab" aria-controls="contact" aria-selected="false">Remover todos</button>
-            </li>
-          </ul>
-          <div class="tab-content" id="myTabContent">
-            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
-              <br>
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th scope="col">Número</th>
-                    <th scope="col">Ação</th>
-                  </tr>
-                </thead>
-                <tbody id="tableNumber">
-                </tbody>
-              </table>
-              <br>
-            </div>
-            <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-              <br>
-              <form>
-                <div class="row">
-                  <div class="col">
-                    <label for="inputAddress" class="form-label">Número:</label>
-                    <input id="add-number-blacklist" type="text" class="form-control" placeholder="Digite um número">
-                  </div>
+                <div id="activatedBot">
+                    <div class="col-12">
+                        <br>
+                        <div class="row">
+                            <br><br><br>
+                            <h5 id="statusBot"></h5>
+                            <br>
+                            <div class="col-6">
+                                <div class="d-grid gap-2 d-md-block">
+                                    <button id="activated" class="btn" style="background-color: #F15A22; color: white;"
+                                            onclick="activatedBot()"></button>
+                                    <button class="btn btn-secondary" type="button" data-bs-toggle="modal"
+                                            data-bs-target="#exampleModal">Sair
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <button type="button" class="btn btn-dark" data-bs-toggle="modal"
+                                            data-bs-target="#blacklistModal"
+                                            onclick="blacklist()">Bloqueados
+                                    </button>
+                                    <button class="btn btn-light" type="button" style="background-color: #e1e0e0;"
+                                            onclick="configSession()" data-bs-toggle="modal"
+                                            data-bs-target="#configSession"><i
+                                                class="fa fa-gear" aria-hidden="true"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </form>
-              <br>
-              <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button id="addConfig" type="submit" onclick="addBlacklist()" class="btn"
-                  style="background-color: #F15A22; color: white;">Adicionar</button>
-              </div>
+                <br><br>
             </div>
-            <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-              <br><br>
-              <h5>Tem certesa que deseja remover todos?</h5>
-              <br>
-              <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button class="btn" id="addConfig" type="submit" onclick="removeAllBlacklist()"
-                  style="background-color: #F15A22; color: white;">Sim</button>
-                <button class="btn btn-secondary" id="addConfig" type="submit" data-bs-dismiss="modal">Não</button>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Sair</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Tem certesa que deseja sair?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn" onclick="exitSession()"
+                        style="background-color: #F15A22; color: white;">Sair
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="configSession" tabindex="-1" aria-labelledby="configSessionlabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Configuração da sessão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row">
+                        <div class="col">
+                            <label for="owner"></label>
+                            <input id="owner" type="text" class="form-control" placeholder="Owner"
+                                                              onkeypress="return onlynumber();">
+                        </div>
+                        <div class="col">
+                            <label for="establishment"></label>
+                            <input id="establishment" type="text" class="form-control" placeholder="Estabelecimento"
+                                                                      onkeypress="return onlynumber();">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="addConfig" type="submit" onclick="updateSession()" class="btn"
+                        style="background-color: #F15A22; color: white;">Adicionar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="blacklistModal" tabindex="-1" aria-labelledby="blacklistModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" id="blacklist">
+            <div class="modal-body">
+                <ul class="nav nav-tabs" id="myTab" role="tablist" style="align-self: center;">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home"
+                                type="button"
+                                onclick="blacklist()" role="tab" aria-controls="home" aria-selected="true">Listar
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile"
+                                type="button"
+                                role="tab" aria-controls="profile" aria-selected="false">Adicionar
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact"
+                                type="button"
+                                role="tab" aria-controls="contact" aria-selected="false">Remover todos
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                        <br>
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th scope="col">Número</th>
+                                <th scope="col">Ação</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tableNumber">
+                            </tbody>
+                        </table>
+                        <br>
+                    </div>
+                    <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                        <br>
+                        <form>
+                            <div class="row">
+                                <div class="col">
+                                    <label for="add-number-blacklist" class="form-label">Número:</label>
+                                    <input id="add-number-blacklist" type="text" class="form-control"
+                                           placeholder="Digite um número">
+                                </div>
+                            </div>
+                        </form>
+                        <br>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button id="addConfig" type="submit" onclick="addBlacklist()" class="btn"
+                                    style="background-color: #F15A22; color: white;">Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+                        <br><br>
+                        <h5>Tem certesa que deseja remover todos?</h5>
+                        <br>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button class="btn" id="addConfig" type="submit" onclick="removeAllBlacklist()"
+                                    style="background-color: #F15A22; color: white;">Sim
+                            </button>
+                            <button class="btn btn-secondary" id="addConfig" type="submit" data-bs-dismiss="modal">Não
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 
 <script src="js/icons.js"></script>

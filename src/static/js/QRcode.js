@@ -1,19 +1,19 @@
 const url = location.host
 const socket = io("http://" + url);
 
-var maskOptions = {
+const maskOptions = {
     mask: '+00 (00) 00000-0000'
 };
-var idInput = document.getElementById('idInput');
-var maskidInput = IMask(idInput, maskOptions);
-var addNumberBlacklist = document.getElementById('add-number-blacklist');
-var maskAddNumberBlacklist = IMask(addNumberBlacklist, maskOptions);
+const idInput = document.getElementById('idInput');
+const maskedInput = IMask(idInput, maskOptions);
+const addNumberBlacklist = document.getElementById('add-number-blacklist');
+const maskAddNumberBlacklist = IMask(addNumberBlacklist, maskOptions);
 
 function onlynumber(evt) {
-    var theEvent = evt || window.event;
-    var key = theEvent.keyCode || theEvent.which;
+    let theEvent = evt || window.event;
+    let key = theEvent.keyCode || theEvent.which;
     key = String.fromCharCode(key);
-    var regex = /^[0-9.]+$/;
+    let regex = /^[0-9.]+$/;
     if (!regex.test(key)) {
         theEvent.returnValue = false;
         if (theEvent.preventDefault) theEvent.preventDefault();
@@ -27,13 +27,15 @@ if ((localStorage.getItem('session') == null) && (localStorage.getItem("statusBo
     document.getElementById('formulario').style.display = 'none';
     document.getElementById('activatedBot').style.display = 'block';
 }
-function criarSessao() {
-    socket.emit("create-session", { id: maskidInput.unmaskedValue });
+
+function createSession() {
+    socket.emit("create-session", {id: maskedInput.unmaskedValue});
     document.getElementById("carregando").style.display = 'block'
-    localStorage.setItem('session', maskidInput.unmaskedValue);
+    localStorage.setItem('session', maskedInput.unmaskedValue);
 }
-socket.on("attempts", (data) => {
-    socket.emit("chamarqr", maskidInput.unmaskedValue)
+
+socket.on("attempts", () => {
+    socket.emit("chamarqr", maskedInput.unmaskedValue)
 });
 
 socket.on('qrcode', (data) => {
@@ -85,24 +87,24 @@ socket.on('statusBot', (data) => {
         document.getElementById("activated").innerHTML = "Ligar"
         document.getElementById("statusBot").innerHTML = "O bot está: Desligado"
     }
-    socket.emit('statusBot', maskidInput.unmaskedValue)
+    socket.emit('statusBot', maskedInput.unmaskedValue)
 })
 
 function activatedBot() {
     if (localStorage.getItem('statusBot') == 'true') {
         localStorage.setItem('statusBot', 'false');
         location.reload();
-        socket.emit('activatedBot', { status: 'false', session: localStorage.getItem("session") })
+        socket.emit('activatedBot', {status: 'false', session: localStorage.getItem("session")})
     } else {
         localStorage.setItem('statusBot', 'true');
         location.reload();
-        socket.emit('activatedBot', { status: 'true', session: localStorage.getItem("session") })
+        socket.emit('activatedBot', {status: 'true', session: localStorage.getItem("session")})
 
     }
 }
 
 function configSession() {
-    var session = localStorage.getItem('session')
+    let session = localStorage.getItem('session')
     socket.emit('configSession', session)
     socket.on('configSession', (data) => {
         let ownerSession = data["ownerClient"]
@@ -118,34 +120,36 @@ function configSession() {
 }
 
 function updateSession() {
-    var session = localStorage.getItem('session')
-    var establishment = document.getElementById('establishment').value
-    var owner = document.getElementById('owner').value
-    socket.emit('dataSession', { 'session': session, 'establishment': establishment, 'owner': owner })
+    let session = localStorage.getItem('session')
+    let establishment = document.getElementById('establishment').value
+    let owner = document.getElementById('owner').value
+    socket.emit('dataSession', {'session': session, 'establishment': establishment, 'owner': owner})
     location.reload();
 }
 
 function blacklist() {
-    var session = localStorage.getItem('session')
+    let session = localStorage.getItem('session')
     socket.emit("blacklist", session)
-    let data = socket.on("blacklist", (data) => {
+    socket.on("blacklist", (data) => {
         document.getElementById("tableNumber").innerHTML = data
         return data
     })
 }
 
 function addBlacklist() {
-    var session = localStorage.getItem('session')
-    socket.emit("blacklist-add", { 'session': session, 'number': maskAddNumberBlacklist.unmaskedValue })
+    let session = localStorage.getItem('session')
+    socket.emit("blacklist-add", {'session': session, 'number': maskAddNumberBlacklist.unmaskedValue})
     location.reload();
 }
+
 function removeBlacklist(number) {
-    var session = localStorage.getItem('session')
-    socket.emit("blacklist-remove", { 'session': session, 'number': number })
+    let session = localStorage.getItem('session')
+    socket.emit("blacklist-remove", {'session': session, 'number': number})
     location.reload();
 }
+
 function removeAllBlacklist() {
-    var session = localStorage.getItem('session')
+    let session = localStorage.getItem('session')
     socket.emit("blacklist-all-remove", session)
     location.reload();
 }
