@@ -243,9 +243,9 @@ app.get("/api/close-session", async (req: Request, res: Response) => {
     }
 })
 
-app.get("/api/health-check", (req: Request, res: Response) => {
+app.get("/api/health-check", async (req: Request, res: Response) => {
     try {
-        const result = sender.healthCheck()
+        const result = await sender.healthCheck()
         return res.status(200).json({result: result})
 
     } catch (error) {

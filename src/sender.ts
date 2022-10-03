@@ -112,6 +112,7 @@ class Sender {
 
     async deleteSession(session: any) {
         await sqlite.deleteSession(session)
+        fs.rmdirSync("./tokens/" + session, {recursive: true})
         return "delete successfully"
     }
 
