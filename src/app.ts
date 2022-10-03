@@ -243,6 +243,18 @@ app.get("/api/close-session", async (req: Request, res: Response) => {
     }
 })
 
+app.get("/api/health-check", (req: Request, res: Response) => {
+    try {
+        const result = sender.healthCheck()
+        return res.status(200).json({result: result})
+
+    } catch (error) {
+        console.error("error", error)
+        res.status(500).json({message: "sick instance"})
+    }
+})
+
+
 app.listen(5000, () => {
     console.log('STARTED!')
 })

@@ -127,6 +127,10 @@ class Sender {
         return "closed sessions"
     }
 
+    async healthCheck(){
+        return "healthy instance"
+    }
+
     private async initialize() {
 
         const app = express()
