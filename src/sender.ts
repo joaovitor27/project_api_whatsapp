@@ -22,16 +22,19 @@ class Sender {
         this.initialize().then(r => console.log(r))
     }
 
-    async message(to: string, body: string, session: string) {
-        if (!isValidPhoneNumber(to, "BR")) {
+    async message(number: string, body: [], session: string) {
+        if (!isValidPhoneNumber(number, "BR")) {
             throw new Error("Invalid number!")
         }
-        let phoneNumber = parsePhoneNumber(to, "BR")?.format("E.164")?.replace("+", "") as string
+        let phoneNumber = parsePhoneNumber(number, "BR")?.format("E.164")?.replace("+", "") as string
         phoneNumber = phoneNumber.includes("@c.us") ? phoneNumber : `${phoneNumber}@c.us`
         let enable = fs.readFileSync("./tokens/" + session + "/enable").toString() == "true";
         if (enable) {
             const client = this.clients.get(session) as Whatsapp
-            await client.sendText(phoneNumber, body)
+            for (let i = 0; i < body.length; i++) {
+                let msg = body[i] as string
+                await client.sendText(phoneNumber, msg)
+            }
             return 'Message sent successfully'
         } else {
             return 'Error when sending, bot disabled'
@@ -128,7 +131,7 @@ class Sender {
         return "closed sessions"
     }
 
-    async healthCheck(){
+    async healthCheck() {
         return "healthy instance"
     }
 
@@ -201,7 +204,10 @@ class Sender {
                 }, {headers: {Token: owner, Id: establishment}})
                     .then(async (res) => {
                         let message1 = res.data["replies"][0]["message"];
-                        if (message1.includes("Não entendi") || message1.includes("não entendi") || message1.includes("Desculpe") || message1.includes("Lamentamos") || message1.includes("desculpe") || message1.includes("lamentamos") || message1.includes("sentimos") || message1.includes("Sentimos")) {
+                        if (message1.includes("Não entendi") || message1.includes("não entendi") ||
+                            message1.includes("Desculpe") || message1.includes("Lamentamos") ||
+                            message1.includes("desculpe") || message1.includes("lamentamos") ||
+                            message1.includes("sentimos") || message1.includes("Sentimos")) {
                             try {
                                 fs.writeFileSync('tokens/' + client.session + '/number-enable/' + phoneNumberFormat, '')
                                 await client.sendText("558681243848@c.us", "Bot não entendeu na revenda: " + client.session + " com o cliente: " + phoneNumberFormat)
@@ -226,7 +232,7 @@ class Sender {
                                             'Content-Type': 'application/json'
                                         }
                                     }).then((res) => {
-                                        console.log("Mensagem enviada!")
+                                    console.log("Mensagem enviada!")
                                 })
                             }
                         }

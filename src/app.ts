@@ -43,6 +43,46 @@ app.post("/api/message", async (req: Request, res: Response) => {
     }
 })
 
+app.post("/api/message-type", async (req: Request, res: Response) => {
+    try {
+        const apiKey = req.get('Authorization')
+        if (!apiKey || apiKey !== process.env.API_KEY) {
+            res.status(401).json({error: 'unauthorised'});
+        } else {
+            let {type_message, session, number} = req.body
+            session = session.replace(/\D/g, '')
+            if (type_message == 'text') {
+                try {
+                    let {messages} = req.body
+                    const message_res = await sender.message(number, messages, session);
+                    return res.status(200).json({reply: message_res});
+                } catch (e: any) {
+                    axios.post(process.env.WEBHOOK_SLACK as string, {"text": "Error in Whatsapp Integration\n" + e.toString() + "Session:" + session})
+                        .catch((error: any) => {
+                            console.error('Error when sending: ', error);
+                        });
+                    console.error(e);
+                    console.error(req);
+                    return res.status(500).json({error: e.message});
+                }
+            }
+            if (type_message == 'button') {
+                let {buttons, submsg, message} = req.body
+                const buttonsRes = await sender.sendButtons(session, number, message, submsg, buttons)
+                return res.status(200).json({reply: buttonsRes})
+            }
+            if (type_message == 'menu') {
+                let {title, subTitle, description, buttonText, listMenu} = req.body
+                await sender.sendMenu(session, number, title, subTitle, description, buttonText, listMenu)
+                return res.status(200).json({success: "Message sent successfully"})
+            }
+        }
+    } catch (error) {
+        console.error("error", error)
+        res.status(500).json({status: "error", message: error})
+    }
+})
+
 app.post("/api/bot-enable", async (req: Request, res: Response) => {
     try {
         const apiKey = req.get('Authorization')
